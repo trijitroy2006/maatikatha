@@ -32,10 +32,8 @@ export function useSpeechRecognition(
   const streamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
-    const SpeechRecognition =
-      (window as unknown as { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition;
-    setIsSupported(!!SpeechRecognition);
+    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    setIsSupported(!!SR);
   }, []);
 
   const setupAudioAnalyser = useCallback(async () => {
@@ -60,7 +58,7 @@ export function useSpeechRecognition(
       };
       tick();
     } catch {
-      // Microphone permission denied — ignore, waveform won't animate
+      // Microphone permission denied — waveform won't animate
     }
   }, []);
 
@@ -75,13 +73,10 @@ export function useSpeechRecognition(
   }, []);
 
   const startListening = useCallback(() => {
-    const SpeechRecognition =
-      (window as unknown as { SpeechRecognition?: typeof window.SpeechRecognition; webkitSpeechRecognition?: typeof window.SpeechRecognition }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: typeof window.SpeechRecognition }).webkitSpeechRecognition;
+    const SR = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    if (!SR) return;
 
-    if (!SpeechRecognition) return;
-
-    const recognition = new SpeechRecognition();
+    const recognition = new SR();
     recognition.lang = lang;
     recognition.continuous = false;
     recognition.interimResults = true;
