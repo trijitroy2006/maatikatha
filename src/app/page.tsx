@@ -14,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import {
   Leaf, Sun, CloudRain, TrendingUp, Mic, Map, Zap,
-  Droplets, Thermometer, Wind, AlertTriangle, Camera
+  Droplets, Thermometer, Wind, AlertTriangle, Camera, Clock
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -37,7 +37,7 @@ function StatCard({ icon, label, value, unit, color }: {
 }
 
 function QuickCard({ icon: Icon, title, desc, color, onClick }: {
-  icon: React.ElementType; title: string; desc: string; color: string; onClick: () => void;
+  icon: any; title: string; desc: string; color: string; onClick: () => void;
 }) {
   return (
     <button

@@ -89,7 +89,7 @@ export function PestRadarMap({ farmLocations = DEFAULT_LOCATIONS }: PestRadarMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors',
           maxZoom: 18,
-        }).addTo(map as Parameters<typeof L.tileLayer>[0]);
+        }).addTo(map as any);
 
         // Farm location markers
         farmLocations.forEach((loc) => {

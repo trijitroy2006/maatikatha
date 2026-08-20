@@ -51,19 +51,19 @@ function LeafCluster({
   return (
     <group position={position} rotation={rotation} scale={scale}>
       {/* Main leaf */}
-      <mesh rotation={[0, 0, 0.3]}>
-        <ellipseGeometry args={[0.15, 0.28, 8]} />
-        <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.7} />
+      <mesh rotation={[0, 0, 0.3]} scale={[1, 0.1, 0.6]}>
+        <sphereGeometry args={[0.28, 8, 6]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
       </mesh>
       {/* Secondary leaf */}
-      <mesh position={[0.2, 0.1, 0]} rotation={[0, 0, -0.4]}>
-        <ellipseGeometry args={[0.12, 0.22, 8]} />
-        <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.7} />
+      <mesh position={[0.2, 0.1, 0]} rotation={[0, 0, -0.4]} scale={[1, 0.1, 0.6]}>
+        <sphereGeometry args={[0.22, 8, 6]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
       </mesh>
       {/* Tertiary leaf */}
-      <mesh position={[-0.18, 0.08, 0]} rotation={[0, 0, 0.5]}>
-        <ellipseGeometry args={[0.10, 0.18, 8]} />
-        <meshStandardMaterial color={color} side={THREE.DoubleSide} roughness={0.7} />
+      <mesh position={[-0.18, 0.08, 0]} rotation={[0, 0, 0.5]} scale={[1, 0.1, 0.6]}>
+        <sphereGeometry args={[0.18, 8, 6]} />
+        <meshStandardMaterial color={color} roughness={0.7} />
       </mesh>
     </group>
   );

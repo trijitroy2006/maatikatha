@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 const TABS: {
   id: TabId | 'time-machine';
-  icon: React.ElementType;
+  icon: any;
   label: string;
   color: string;
   activeBg: string;

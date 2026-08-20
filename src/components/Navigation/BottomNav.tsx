@@ -12,7 +12,7 @@ interface BottomNavProps {
   onTabChange: (tab: TabId) => void;
 }
 
-const TABS: { id: TabId; icon: React.ElementType; label: string; color: string }[] = [
+const TABS: { id: TabId; icon: any; label: string; color: string }[] = [
   { id: 'home',      icon: Home,       label: 'HOME',      color: 'bg-black text-[#FFD600]' },
   { id: 'simulator', icon: Zap,        label: 'SIM',       color: 'bg-[#FFD600] text-black' },
   { id: 'climate',   icon: CloudRain,  label: 'CLIMATE',   color: 'bg-white text-black' },
