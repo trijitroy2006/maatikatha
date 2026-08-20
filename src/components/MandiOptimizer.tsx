@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, TrendingUp, MapPin, Calendar, Wheat } from 'lucide-react';
+import { Loader2, TrendingUp, MapPin, Calendar, Wheat, CheckCircle2, Clock } from 'lucide-react';
 import { getMandiPrice } from '@/lib/api';
 import { MandiPrice } from '@/lib/types';
 
@@ -43,15 +43,15 @@ function todayString(): string {
 }
 
 function rainRiskColor(risk: number): string {
-  if (risk < 40)  return 'text-[#1B5E20]';
-  if (risk <= 70) return 'text-[#F57F17]';
-  return 'text-[#D50000]';
+  if (risk < 40)  return 'text-emerald-600';
+  if (risk <= 70) return 'text-amber-500';
+  return 'text-red-500';
 }
 
 function rainRiskLabel(risk: number): string {
-  if (risk < 40)  return 'LOW';
-  if (risk <= 70) return 'MODERATE';
-  return 'HIGH';
+  if (risk < 40)  return 'Low';
+  if (risk <= 70) return 'Moderate';
+  return 'High';
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -106,73 +106,83 @@ export default function MandiOptimizer() {
       {/* ------------------------------------------------------------------ */}
       {/* Header                                                               */}
       {/* ------------------------------------------------------------------ */}
-      <h1 className="font-black text-3xl text-black mb-6 tracking-tight">
-        🌾 MANDI PROFIT OPTIMIZER
-      </h1>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-3 bg-emerald-100 rounded-xl">
+          <TrendingUp className="w-6 h-6 text-emerald-600" />
+        </div>
+        <h1 className="font-bold text-2xl text-gray-900 tracking-tight">
+          Mandi Profit Optimizer
+        </h1>
+      </div>
 
       {/* ------------------------------------------------------------------ */}
       {/* Controls row                                                         */}
       {/* ------------------------------------------------------------------ */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        {/* Crop selector */}
-        <div className="flex flex-col gap-1">
-          <label className="font-black text-xs uppercase tracking-widest flex items-center gap-1">
-            <Wheat size={14} /> CROP
-          </label>
-          <select
-            value={selectedCrop}
-            onChange={(e) => setSelectedCrop(e.target.value)}
-            className="border-4 border-black bg-white p-3 text-lg font-bold min-h-[56px] focus:outline-none focus:ring-2 focus:ring-[#FFD600]"
-          >
-            {CROPS.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="flex flex-wrap items-end gap-6">
+          {/* Crop selector */}
+          <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+            <label className="font-medium text-sm text-gray-600 flex items-center gap-2">
+              <Wheat size={16} className="text-gray-400" /> Crop Type
+            </label>
+            <div className="relative">
+              <select
+                value={selectedCrop}
+                onChange={(e) => setSelectedCrop(e.target.value)}
+                className="w-full appearance-none bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-base font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+              >
+                {CROPS.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+              </div>
+            </div>
+          </div>
 
-        {/* Harvest date */}
-        <div className="flex flex-col gap-1">
-          <label className="font-black text-xs uppercase tracking-widest flex items-center gap-1">
-            <Calendar size={14} /> HARVEST DATE
-          </label>
-          <input
-            type="date"
-            value={harvestDate}
-            onChange={(e) => setHarvestDate(e.target.value)}
-            className="border-4 border-black bg-white p-3 text-lg font-bold min-h-[56px] focus:outline-none focus:ring-2 focus:ring-[#FFD600]"
-          />
-        </div>
+          {/* Harvest date */}
+          <div className="flex flex-col gap-2 flex-1 min-w-[200px]">
+            <label className="font-medium text-sm text-gray-600 flex items-center gap-2">
+              <Calendar size={16} className="text-gray-400" /> Harvest Date
+            </label>
+            <input
+              type="date"
+              value={harvestDate}
+              onChange={(e) => setHarvestDate(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 text-base font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-shadow"
+            />
+          </div>
 
-        {/* Analyse button */}
-        <div className="flex flex-col justify-end">
-          <button
-            onClick={handleAnalyse}
-            disabled={isLoading}
-            className="bg-[#FFD600] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
-                       font-black text-lg px-8 py-3 min-h-[56px]
-                       hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                       transition-all active:translate-x-[2px] active:translate-y-[2px]
-                       disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'LOADING…' : 'ANALYSE'}
-          </button>
+          {/* Analyse button */}
+          <div className="flex flex-col justify-end">
+            <button
+              onClick={handleAnalyse}
+              disabled={isLoading}
+              className="bg-emerald-600 text-white rounded-xl shadow-sm hover:shadow-md font-semibold text-base px-8 py-3 h-[46px] flex items-center justify-center gap-2 transition-all duration-200 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isLoading ? <><Loader2 className="w-5 h-5 animate-spin" /><span>Loading...</span></> : 'Analyse Market'}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ------------------------------------------------------------------ */}
       {/* Rain Risk Slider                                                     */}
       {/* ------------------------------------------------------------------ */}
-      <div className="mb-8 border-4 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-        <div className="flex items-center justify-between mb-2">
-          <span className="font-black text-sm uppercase tracking-widest">
-            RAIN RISK IN 7 DAYS
+      <div className="mb-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <span className="font-semibold text-gray-700 text-sm uppercase tracking-wider flex items-center gap-2">
+            <span>🌧️</span> 7-Day Rain Risk
           </span>
-          <span className={`font-black text-2xl ${rainRiskColor(rainRisk)}`}>
-            {rainRisk}%&nbsp;
-            <span className="text-base">{rainRiskLabel(rainRisk)}</span>
-          </span>
+          <div className="flex items-baseline gap-2">
+            <span className={`font-bold text-2xl ${rainRiskColor(rainRisk)}`}>
+              {rainRisk}%
+            </span>
+            <span className={`font-medium text-sm ${rainRiskColor(rainRisk)}`}>{rainRiskLabel(rainRisk)}</span>
+          </div>
         </div>
         <input
           type="range"
@@ -180,11 +190,11 @@ export default function MandiOptimizer() {
           max={100}
           value={rainRisk}
           onChange={(e) => setRainRisk(Number(e.target.value))}
-          className="w-full h-3 cursor-pointer accent-[#D50000]"
+          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
         />
-        <div className="flex justify-between mt-1">
-          <span className="text-xs font-bold text-[#1B5E20]">0% — DRY</span>
-          <span className="text-xs font-bold text-[#D50000]">100% — FLOOD RISK</span>
+        <div className="flex justify-between mt-3 text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <span>0% — Dry</span>
+          <span>100% — Flood Risk</span>
         </div>
       </div>
 
@@ -192,10 +202,10 @@ export default function MandiOptimizer() {
       {/* Loading skeleton                                                     */}
       {/* ------------------------------------------------------------------ */}
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <Loader2 className="animate-spin w-16 h-16 text-black" />
-          <p className="font-black text-lg text-black tracking-wide">
-            Fetching mandi prices…
+        <div className="flex flex-col items-center justify-center py-20 gap-4 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <Loader2 className="animate-spin w-10 h-10 text-emerald-500" />
+          <p className="font-medium text-gray-500">
+            Analyzing market conditions...
           </p>
         </div>
       ) : data ? (
@@ -205,153 +215,181 @@ export default function MandiOptimizer() {
           {/* -------------------------------------------------------------- */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* LEFT CARD – Market Prices */}
-            <div className="bg-[#FFFDE7] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col">
               {/* Card header */}
-              <div className="flex items-center gap-2 border-b-4 border-black pb-3 mb-4">
-                <TrendingUp size={20} className="text-black" />
-                <h2 className="font-black text-xl text-black uppercase tracking-wide">
-                  MARKET PRICES
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                  <TrendingUp size={20} />
+                </div>
+                <h2 className="font-semibold text-lg text-gray-900">
+                  Price Analysis
                 </h2>
               </div>
 
-              {/* MSP price */}
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-bold text-base text-black">MSP (Govt. Rate)</span>
-                <span className="font-black text-2xl text-black">
-                  ₹{data.msp_per_quintal.toLocaleString('en-IN')}/q
-                </span>
-              </div>
+              <div className="space-y-6 flex-1">
+                {/* MSP price */}
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-gray-500">MSP (Govt. Rate)</span>
+                  <span className="font-semibold text-xl text-gray-700">
+                    ₹{data.msp_per_quintal.toLocaleString('en-IN')}
+                    <span className="text-sm font-normal text-gray-400 ml-1">/q</span>
+                  </span>
+                </div>
 
-              {/* Market price */}
-              <div className="flex items-center justify-between mb-4">
-                <span className="font-bold text-base text-black">Market Price</span>
-                <span className="font-black text-3xl text-[#1B5E20]">
-                  ₹{data.market_price_per_quintal.toLocaleString('en-IN')}/q
-                </span>
-              </div>
+                {/* Market price */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <span className="font-semibold text-gray-700">Current Market</span>
+                  <span className="font-bold text-2xl text-emerald-600">
+                    ₹{data.market_price_per_quintal.toLocaleString('en-IN')}
+                    <span className="text-sm font-normal text-emerald-600/70 ml-1">/q</span>
+                  </span>
+                </div>
 
-              {/* Profit margin label */}
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-sm text-black uppercase tracking-wide">
-                  Profit Over MSP
-                </span>
-                <span
-                  className={`font-black text-base ${
-                    profitMargin >= 0 ? 'text-[#1B5E20]' : 'text-[#D50000]'
-                  }`}
-                >
-                  {profitMargin >= 0 ? '+' : ''}
-                  {profitMargin.toFixed(1)}%
-                </span>
-              </div>
+                <div className="pt-2">
+                  {/* Profit margin label */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm text-gray-500">
+                      Profit Margin (vs MSP)
+                    </span>
+                    <span
+                      className={`font-semibold text-sm px-2.5 py-0.5 rounded-full ${
+                        profitMargin >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                      }`}
+                    >
+                      {profitMargin >= 0 ? '+' : ''}
+                      {profitMargin.toFixed(1)}%
+                    </span>
+                  </div>
 
-              {/* Profit bar */}
-              <div className="bg-stone-200 border-2 border-black h-6 mb-5">
-                <div
-                  className="h-full bg-[#1B5E20] border-2 border-black transition-all duration-500"
-                  style={{ width: `${profitBarWidth}%` }}
-                />
-              </div>
+                  {/* Profit bar */}
+                  <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${profitBarWidth}%` }}
+                    />
+                  </div>
+                </div>
 
-              {/* Best sell window */}
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-sm text-black uppercase tracking-wide">
-                  Best Sell Window
-                </span>
-                <span className="bg-[#FFD600] border-2 border-black px-3 py-1 font-bold text-black text-sm">
-                  {data.best_sell_window}
-                </span>
+                {/* Best sell window */}
+                <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
+                  <span className="font-medium text-gray-500 flex items-center gap-2">
+                    <Calendar size={16} className="text-gray-400" /> Optimal Window
+                  </span>
+                  <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded-lg font-medium text-sm border border-amber-200">
+                    {data.best_sell_window}
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* RIGHT CARD – Nearby Mandis */}
-            <div className="bg-[#FFFDE7] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
               {/* Card header */}
-              <div className="flex items-center gap-2 border-b-4 border-black pb-3 mb-4">
-                <MapPin size={20} className="text-black" />
-                <h2 className="font-black text-xl text-black uppercase tracking-wide">
-                  NEARBY MANDIS
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-purple-50 rounded-lg text-purple-600">
+                  <MapPin size={20} />
+                </div>
+                <h2 className="font-semibold text-lg text-gray-900">
+                  Nearby Markets
                 </h2>
               </div>
 
               {/* Table header */}
-              <div className="grid grid-cols-3 gap-2 mb-2">
-                <span className="font-black text-xs uppercase tracking-widest">NAME</span>
-                <span className="font-black text-xs uppercase tracking-widest text-center">
-                  DIST.
-                </span>
-                <span className="font-black text-xs uppercase tracking-widest text-right">
-                  PRICE/Q
-                </span>
+              <div className="grid grid-cols-12 gap-4 mb-3 pb-2 border-b border-gray-100">
+                <span className="col-span-6 font-medium text-xs text-gray-400 uppercase tracking-wider">Market Name</span>
+                <span className="col-span-3 font-medium text-xs text-gray-400 uppercase tracking-wider text-right">Distance</span>
+                <span className="col-span-3 font-medium text-xs text-gray-400 uppercase tracking-wider text-right">Price/q</span>
               </div>
 
               {/* Mandi rows */}
-              {data.nearby_mandis.map((mandi, idx) => {
-                const isBest = mandi.price_per_quintal === bestMandiPrice;
-                return (
-                  <div
-                    key={idx}
-                    className={`grid grid-cols-3 gap-2 border-b-2 border-black py-3 items-center
-                      ${isBest ? 'bg-[#FFD600] -mx-2 px-2' : ''}`}
-                  >
-                    <div>
+              <div className="space-y-2">
+                {data.nearby_mandis.map((mandi, idx) => {
+                  const isBest = mandi.price_per_quintal === bestMandiPrice;
+                  return (
+                    <div
+                      key={idx}
+                      className={`grid grid-cols-12 gap-4 py-3 px-4 rounded-xl items-center transition-colors
+                        ${isBest ? 'bg-emerald-50 border border-emerald-100' : 'hover:bg-gray-50 border border-transparent'}`}
+                    >
+                      <div className="col-span-6 flex flex-col">
+                        <span
+                          className={`font-medium text-sm ${
+                            isBest ? 'text-emerald-900' : 'text-gray-700'
+                          }`}
+                        >
+                          {mandi.name}
+                        </span>
+                        {isBest && (
+                          <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mt-0.5">
+                            Highest Price
+                          </span>
+                        )}
+                      </div>
+                      <span className={`col-span-3 text-sm text-right ${isBest ? 'text-emerald-700' : 'text-gray-500'}`}>
+                        {mandi.distance_km} km
+                      </span>
                       <span
-                        className={`font-bold text-sm text-black ${
-                          isBest ? 'font-black' : ''
+                        className={`col-span-3 font-semibold text-right ${
+                          isBest ? 'text-emerald-600' : 'text-gray-900'
                         }`}
                       >
-                        {mandi.name}
+                        ₹{mandi.price_per_quintal.toLocaleString('en-IN')}
                       </span>
-                      {isBest && (
-                        <span className="block text-xs font-black text-black uppercase">
-                          ⭐ BEST
-                        </span>
-                      )}
                     </div>
-                    <span className="font-bold text-sm text-black text-center">
-                      {mandi.distance_km} km
-                    </span>
-                    <span
-                      className={`font-black text-base text-right ${
-                        isBest ? 'text-[#1B5E20]' : 'text-black'
-                      }`}
-                    >
-                      ₹{mandi.price_per_quintal.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           {/* -------------------------------------------------------------- */}
           {/* Decision card                                                    */}
           {/* -------------------------------------------------------------- */}
-          {decision === 'HARVEST NOW' ? (
-            <div
-              className="mt-6 bg-[#1B5E20] border-4 border-black
-                         shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 text-center"
-            >
-              <p className="text-white font-black text-5xl tracking-tight mb-2">
-                HARVEST NOW ✅
-              </p>
-              <p className="text-white text-xl mt-2">
-                Market price is above MSP and rain risk is low.
-              </p>
-            </div>
-          ) : (
-            <div
-              className="mt-6 bg-[#FFD600] border-4 border-black
-                         shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 text-center"
-            >
-              <p className="text-black font-black text-5xl tracking-tight mb-2">
-                WAIT ⏳
-              </p>
-              <p className="text-black text-xl mt-2">
-                Rain risk is high or price is below optimal threshold.
-              </p>
-            </div>
-          )}
+          <div className="mt-8">
+            {decision === 'HARVEST NOW' ? (
+              <div
+                className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl shadow-lg border border-emerald-400 p-8 flex items-center justify-between"
+              >
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <CheckCircle2 className="w-8 h-8 text-white" />
+                    <p className="text-white font-bold text-3xl tracking-tight">
+                      Harvest Now
+                    </p>
+                  </div>
+                  <p className="text-emerald-50 text-lg font-medium opacity-90">
+                    Market price is above MSP and rain risk is favorable.
+                  </p>
+                </div>
+                <div className="hidden md:block">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
+                    <Wheat className="w-10 h-10 text-white" />
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="bg-gradient-to-r from-amber-400 to-amber-500 rounded-2xl shadow-lg border border-amber-300 p-8 flex items-center justify-between"
+              >
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <Clock className="w-8 h-8 text-amber-900" />
+                    <p className="text-amber-950 font-bold text-3xl tracking-tight">
+                      Wait To Harvest
+                    </p>
+                  </div>
+                  <p className="text-amber-900/80 text-lg font-medium">
+                    High rain risk or market prices are currently below optimal levels.
+                  </p>
+                </div>
+                <div className="hidden md:block">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
+                    <Clock className="w-10 h-10 text-amber-900" />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </>
       ) : null}
     </section>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, UploadCloud, Camera, X } from 'lucide-react';
 
 interface FieldUploaderProps {
   onUpload?: (file: File, previewUrl: string) => void;
@@ -48,16 +48,22 @@ export default function FieldUploader({ onUpload }: FieldUploaderProps) {
   };
 
   return (
-    <div className="bg-[#FFFDE7] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6">
-      <h2 className="font-black text-2xl text-black mb-6 tracking-tight">📷 FIELD PHOTO UPLOAD</h2>
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-8">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600">
+          <Camera className="w-6 h-6" />
+        </div>
+        <h2 className="font-bold text-xl text-gray-900 tracking-tight">Field Photo Upload</h2>
+      </div>
 
       <input ref={inputRef} type="file" accept="image/*" capture="environment"
         className="hidden" onChange={handleInputChange} />
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex items-center justify-center bg-[#FFD600] border-4 border-black h-64">
-          <Loader2 className="w-16 h-16 animate-spin text-black" />
+        <div className="flex flex-col items-center justify-center bg-gray-50 rounded-2xl border-2 border-gray-100 h-64 space-y-4">
+          <Loader2 className="w-12 h-12 animate-spin text-emerald-500" />
+          <p className="text-gray-500 font-medium">Processing image...</p>
         </div>
       )}
 
@@ -68,35 +74,41 @@ export default function FieldUploader({ onUpload }: FieldUploaderProps) {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-4 border-dashed border-black p-12 text-center cursor-pointer transition-colors duration-100 select-none
-            ${isDragging ? 'bg-[#FFD600] border-solid' : 'bg-[#FFFDE7] hover:bg-yellow-50'}`}
+          className={`border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-200 select-none flex flex-col items-center justify-center min-h-[16rem]
+            ${isDragging ? 'bg-emerald-50 border-emerald-500' : 'bg-gray-50 border-gray-300 hover:bg-gray-100 hover:border-gray-400'}`}
         >
-          <div className="text-6xl mb-4">📷</div>
-          <p className="font-black text-2xl text-black mb-2 tracking-tight">DRAG PHOTO HERE</p>
-          <p className="text-black font-bold text-sm">or tap to use camera</p>
+          <div className="p-4 bg-white rounded-full shadow-sm mb-4">
+            <UploadCloud className={`w-8 h-8 ${isDragging ? 'text-emerald-500' : 'text-gray-400'}`} />
+          </div>
+          <p className="font-semibold text-lg text-gray-700 mb-1">Drag photo here</p>
+          <p className="text-gray-500 text-sm">or tap to browse / use camera</p>
         </div>
       )}
 
       {/* Preview */}
       {!isLoading && previewUrl && uploadedFile && (
-        <div>
-          <div className="relative border-4 border-black overflow-hidden">
-            <img src={previewUrl} alt="Field crop photo" className="object-cover w-full h-64" />
-            <div className="absolute bottom-0 left-0 right-0 bg-black text-white px-4 py-2 flex items-center justify-between">
-              <span className="text-sm font-bold truncate max-w-[70%]">{truncate(uploadedFile.name)}</span>
-              <button onClick={handleRemove}
-                className="text-[#FFD600] font-bold text-sm ml-4 hover:underline shrink-0 min-h-[32px]">
-                REMOVE
+        <div className="space-y-4">
+          <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm group">
+            <img src={previewUrl} alt="Field crop photo" className="object-cover w-full h-64 transition-transform duration-500 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-100"></div>
+            <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
+              <span className="text-sm font-medium text-white truncate max-w-[70%] drop-shadow-md">
+                {truncate(uploadedFile.name)}
+              </span>
+              <button 
+                onClick={handleRemove}
+                className="p-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full text-white transition-colors"
+                title="Remove photo"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
+          
           <button
-            className="mt-4 w-full py-4 bg-[#1B5E20] text-white border-4 border-black
-              shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-black text-lg flex items-center justify-center gap-2
-              transition-all duration-100 hover:translate-x-[2px] hover:translate-y-[2px]
-              hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] min-h-[56px]"
+            className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md font-bold text-lg flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg min-h-[56px]"
           >
-            ANALYSE CROP →
+            Analyse Crop
           </button>
         </div>
       )}
