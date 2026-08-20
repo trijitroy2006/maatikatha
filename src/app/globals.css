@@ -1,183 +1,196 @@
 @import "tailwindcss";
 
 /* ============================================================
-   MaatiKatha — Tailwind v4 Theme Configuration
-   High-contrast rural color palette
+   MaatiKatha — Tailwind v4 Theme (Phase 2 Brutalist System)
    ============================================================ */
 @theme {
-  /* Color overrides — earth + high contrast */
-  --color-brand-amber: #f59e0b;
+  --color-brand-amber:   #f59e0b;
   --color-brand-emerald: #10b981;
-  --color-brand-sky: #0ea5e9;
-  --color-brand-red: #ef4444;
+  --color-brand-sky:     #0ea5e9;
+  --color-brand-red:     #ef4444;
 
-  /* Font families */
+  /* Brutalist palette */
+  --color-brut-yellow:  #FFD600;
+  --color-brut-red:     #D50000;
+  --color-brut-green:   #1B5E20;
+  --color-brut-cream:   #FFFDE7;
+
   --font-bengali: 'Noto Sans Bengali', 'Noto Sans', system-ui, sans-serif;
-  --font-sans: 'Noto Sans', system-ui, sans-serif;
-
-  /* Custom border radius */
-  --radius-2xl: 1rem;
-  --radius-3xl: 1.5rem;
+  --font-sans:    'Noto Sans', system-ui, sans-serif;
+  --radius-2xl:   1rem;
+  --radius-3xl:   1.5rem;
 }
 
 /* ============================================================
-   MaatiKatha — Global Styles
-   High-contrast, outdoor-optimized, mobile-first
+   Global Base
    ============================================================ */
-
-/* ---- Font Variables ---- */
 :root {
-  --font-noto-sans: 'Noto Sans', system-ui, sans-serif;
+  --font-noto-sans:    'Noto Sans', system-ui, sans-serif;
   --font-noto-bengali: 'Noto Sans Bengali', 'Noto Sans', system-ui, sans-serif;
 }
 
-/* ---- Base ---- */
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
 html {
-  font-size: 20px;
+  font-size: 18px;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   font-family: var(--font-noto-sans);
-  background-color: #0c0a09; /* stone-950 */
-  color: #f5f5f4; /* stone-100 */
+  background-color: #FFFDE7;
+  color: #000000;
   overflow-x: hidden;
   line-height: 1.6;
 }
 
-/* ---- Bengali Font Class ---- */
 .font-bengali {
   font-family: var(--font-noto-bengali);
   line-height: 1.7;
 }
 
-/* ---- Global text scale-ups ---- */
-p, span, li, label, input, textarea {
-  font-size: 1rem;       /* 20px */
+/* ============================================================
+   Brutalist Utility Classes
+   ============================================================ */
+.brut-card {
+  background-color: #FFFDE7;
+  border: 4px solid #000000;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
 }
 
-h1 { font-size: 2rem;    }   /* 40px */
-h2 { font-size: 1.75rem; }   /* 35px */
-h3 { font-size: 1.35rem; }   /* 27px */
-h4 { font-size: 1.15rem; }   /* 23px */
+.brut-card-lg {
+  background-color: #FFFDE7;
+  border: 4px solid #000000;
+  box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+}
 
-/* ---- Waveform Animation Keyframes ---- */
+.brut-btn {
+  border: 4px solid #000000;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+  font-weight: 900;
+  transition: transform 0.08s, box-shadow 0.08s;
+  min-height: 56px;
+  cursor: pointer;
+}
+
+.brut-btn:hover,
+.brut-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+}
+
+.brut-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
+}
+
+.brut-input {
+  border: 4px solid #000000;
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  width: 100%;
+  outline: none;
+}
+
+.brut-input:focus {
+  outline: 4px solid #FFD600;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Touch Targets (WCAG 2.5.5)
+   ============================================================ */
+button, a, [role="button"] {
+  min-height: 52px;
+  min-width: 52px;
+}
+
+/* ============================================================
+   Waveform Animation
+   ============================================================ */
 @keyframes waveBar {
-  0% {
-    transform: scaleY(0.3);
-    opacity: 0.6;
-  }
-  100% {
-    transform: scaleY(1);
-    opacity: 1;
-  }
+  0%   { transform: scaleY(0.3); opacity: 0.6; }
+  100% { transform: scaleY(1);   opacity: 1;   }
 }
 
-/* ---- Leaflet Override — Dark Theme ---- */
+/* ============================================================
+   Leaflet — Brutalist Override
+   ============================================================ */
 .leaflet-container {
-  background: #1c1917 !important;
-  font-family: var(--font-noto-bengali);
+  background: #FFFDE7 !important;
+  font-family: var(--font-noto-sans);
+  border: 4px solid #000000;
 }
 
-.leaflet-tile {
-  filter: brightness(0.85) saturate(0.9);
-}
+.leaflet-tile { filter: brightness(0.9) saturate(0.85); }
 
 .leaflet-popup-content-wrapper {
-  background: #292524 !important;
-  color: #f5f5f4 !important;
-  border: 1px solid #57534e;
-  border-radius: 12px !important;
+  background: #FFFDE7 !important;
+  color: #000000 !important;
+  border: 4px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: 4px 4px 0 0 rgba(0,0,0,1) !important;
 }
 
-.leaflet-popup-tip {
-  background: #292524 !important;
-}
+.leaflet-popup-tip { background: #000000 !important; }
 
 .leaflet-control-zoom {
-  border: 1px solid #57534e !important;
+  border: 4px solid #000000 !important;
+  border-radius: 0 !important;
 }
 
 .leaflet-control-zoom a {
-  background: #292524 !important;
-  color: #f5f5f4 !important;
-  border-color: #57534e !important;
+  background: #FFD600 !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  font-weight: 900 !important;
 }
 
-.leaflet-control-zoom a:hover {
-  background: #3d3532 !important;
-}
+.leaflet-control-zoom a:hover { background: #000000 !important; color: #FFD600 !important; }
 
-/* ---- Scrollbar Styling ---- */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
+/* ============================================================
+   Scrollbar
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #FFFDE7; border-left: 2px solid #000; }
+::-webkit-scrollbar-thumb { background: #000000; }
 
-::-webkit-scrollbar-track {
-  background: #1c1917;
-}
+/* ============================================================
+   Safe Area (iOS)
+   ============================================================ */
+.safe-area-inset-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-::-webkit-scrollbar-thumb {
-  background: #57534e;
-  border-radius: 4px;
-}
-
-/* ---- Touch Target Minimum (WCAG 2.5.5) ---- */
-button, a, [role="button"] {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-/* ---- Safe area for iOS notch / bottom bar ---- */
-.safe-area-inset-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* ---- Fade/slide animations (used in components) ---- */
+/* ============================================================
+   Animations
+   ============================================================ */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-in {
-  animation: fadeInUp 0.4s ease-out both;
-}
-
-.fade-in {
-  animation: fadeIn 0.3s ease-out both;
-}
-
-.slide-in-from-bottom-4 {
-  animation: slideUp4 0.4s ease-out both;
-}
-
-.slide-in-from-bottom-3 {
-  animation: slideUp3 0.3s ease-out both;
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes slideUp4 {
   from { opacity: 0; transform: translateY(1rem); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideUp3 {
   from { opacity: 0; transform: translateY(0.75rem); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+
+.animate-in              { animation: fadeInUp 0.35s ease-out both; }
+.fade-in                 { animation: fadeIn 0.3s ease-out both; }
+.slide-in-from-bottom-4  { animation: slideUp4 0.4s ease-out both; }
+.slide-in-from-bottom-3  { animation: slideUp3 0.3s ease-out both; }

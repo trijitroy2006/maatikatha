@@ -1,49 +1,44 @@
 'use client';
 
 import React from 'react';
-import { Home, Zap, CloudRain, Mic, Map } from 'lucide-react';
+import { Home, Zap, CloudRain, Mic, Map, Camera, TrendingUp } from 'lucide-react';
 import { useI18n } from '@/contexts/i18nContext';
 import { cn } from '@/lib/utils';
 
-export type TabId = 'home' | 'simulator' | 'climate' | 'doctor' | 'map';
+export type TabId = 'home' | 'simulator' | 'climate' | 'doctor' | 'map' | 'uploader' | 'mandi';
 
 interface BottomNavProps {
   activeTab: TabId;
   onTabChange: (tab: TabId) => void;
 }
 
-const TABS: { id: TabId; icon: React.ElementType; labelKey: 'nav_home' | 'nav_simulator' | 'nav_climate' | 'nav_doctor' | 'nav_map'; color: string }[] = [
-  { id: 'home',      icon: Home,      labelKey: 'nav_home',      color: 'text-stone-200' },
-  { id: 'simulator', icon: Zap,       labelKey: 'nav_simulator', color: 'text-amber-400' },
-  { id: 'climate',   icon: CloudRain, labelKey: 'nav_climate',   color: 'text-sky-400'   },
-  { id: 'doctor',    icon: Mic,       labelKey: 'nav_doctor',    color: 'text-emerald-400'},
-  { id: 'map',       icon: Map,       labelKey: 'nav_map',       color: 'text-red-400'   },
+const TABS: { id: TabId; icon: React.ElementType; label: string; color: string }[] = [
+  { id: 'home',      icon: Home,       label: 'HOME',      color: 'bg-black text-[#FFD600]' },
+  { id: 'simulator', icon: Zap,        label: 'SIM',       color: 'bg-[#FFD600] text-black' },
+  { id: 'climate',   icon: CloudRain,  label: 'CLIMATE',   color: 'bg-white text-black' },
+  { id: 'doctor',    icon: Mic,        label: 'DOCTOR',    color: 'bg-[#1B5E20] text-white' },
+  { id: 'map',       icon: Map,        label: 'RADAR',     color: 'bg-[#D50000] text-white' },
 ];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   const { t } = useI18n();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 bg-stone-900/95 backdrop-blur-sm border-t-2 border-stone-700 safe-area-inset-bottom">
-      <div className="grid grid-cols-5 max-w-lg mx-auto">
-        {TABS.map(({ id, icon: Icon, labelKey, color }) => {
+    <nav className="fixed bottom-0 inset-x-0 z-50 bg-[#FFFDE7] border-t-4 border-black safe-area-inset-bottom">
+      <div className="flex w-full overflow-x-auto">
+        {TABS.map(({ id, icon: Icon, label, color }) => {
           const isActive = activeTab === id;
           return (
             <button
               key={id}
               onClick={() => onTabChange(id)}
               className={cn(
-                'flex flex-col items-center justify-center py-3 gap-1 transition-all active:scale-95',
-                isActive ? color : 'text-stone-500 hover:text-stone-300'
+                'flex-1 flex flex-col items-center justify-center py-3 min-w-[72px] border-r-4 border-black last:border-r-0 transition-all',
+                isActive ? color : 'bg-[#FFFDE7] text-black hover:bg-yellow-50'
               )}
-              aria-label={t[labelKey]}
             >
-              <div className={cn('p-2 rounded-xl transition-all', isActive && 'bg-stone-700')}>
-                <Icon className="w-7 h-7" strokeWidth={isActive ? 2.5 : 1.5} />
-              </div>
-              <span className={cn('text-xs font-bold leading-tight transition-all', isActive ? 'opacity-100' : 'opacity-50')}>
-                {t[labelKey]}
-              </span>
+              <Icon className="w-6 h-6 mb-1" strokeWidth={isActive ? 3 : 2} />
+              <span className="text-[10px] font-black">{label}</span>
             </button>
           );
         })}

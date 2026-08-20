@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { Noto_Sans_Bengali, Noto_Sans } from 'next/font/google';
 import { I18nProvider } from '@/contexts/i18nContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import './globals.css';
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
   variable: '--font-noto-sans',
-  weight: ['400', '600', '700', '800'],
+  weight: ['400', '600', '700', '800', '900'],
   display: 'swap',
 });
 
@@ -18,13 +19,13 @@ const notoBengali = Noto_Sans_Bengali({
 });
 
 export const metadata: Metadata = {
-  title: 'মাটিকথা | MaatiKatha',
+  title: 'MaatiKatha | মাটিকথা — Farm Intelligence',
   description:
     'Zero-hardware, voice-first generational farm simulation and climate resilience platform for rural farmers in West Bengal.',
   manifest: '/manifest.json',
   openGraph: {
-    title: 'মাটিকথা | MaatiKatha',
-    description: 'কৃষকের কণ্ঠস্বর, মাটির কথা',
+    title: 'MaatiKatha — Farm Intelligence',
+    description: "The farmer's voice, the soil's story.",
     type: 'website',
   },
 };
@@ -34,7 +35,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#1c1917',
+  themeColor: '#FFFDE7',
 };
 
 export default function RootLayout({
@@ -44,8 +45,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${notoSans.variable} ${notoBengali.variable}`}>
-      <body className="bg-stone-950 text-stone-100 antialiased min-h-screen">
-        <I18nProvider>{children}</I18nProvider>
+      <body className="bg-[#FFFDE7] text-black antialiased min-h-screen">
+        <AuthProvider>
+          <I18nProvider>{children}</I18nProvider>
+        </AuthProvider>
       </body>
     </html>
   );

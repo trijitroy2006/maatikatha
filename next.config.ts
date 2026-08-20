@@ -1,8 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // Allow Leaflet CSS to be imported in client components
-  transpilePackages: ['leaflet', 'react-leaflet'],
+  // Allow Leaflet and Three.js to be imported in client components
+  transpilePackages: ['leaflet', 'react-leaflet', 'three', '@react-three/fiber', '@react-three/drei'],
 
   // Optimize images
   images: {

@@ -1,100 +1,102 @@
 'use client';
 
 import React from 'react';
-import { Home, Zap, CloudRain, Mic, Map, Leaf } from 'lucide-react';
+import { Home, Zap, CloudRain, Mic, Map, Leaf, Camera, TrendingUp, Clock } from 'lucide-react';
 import { useI18n } from '@/contexts/i18nContext';
 import { cn } from '@/lib/utils';
 import type { TabId } from './BottomNav';
+import Link from 'next/link';
 
 const TABS: {
-  id: TabId;
+  id: TabId | 'time-machine';
   icon: React.ElementType;
-  labelKey: 'nav_home' | 'nav_simulator' | 'nav_climate' | 'nav_doctor' | 'nav_map';
+  label: string;
   color: string;
   activeBg: string;
   desc: string;
 }[] = [
-  { id: 'home',      icon: Home,      labelKey: 'nav_home',      color: 'text-stone-300',  activeBg: 'bg-stone-700',     desc: 'Dashboard'            },
-  { id: 'simulator', icon: Zap,       labelKey: 'nav_simulator', color: 'text-amber-400',  activeBg: 'bg-amber-950/80',  desc: 'Crop Yield Simulator' },
-  { id: 'climate',   icon: CloudRain, labelKey: 'nav_climate',   color: 'text-sky-400',    activeBg: 'bg-sky-950/80',    desc: 'Climate Forecast'     },
-  { id: 'doctor',    icon: Mic,       labelKey: 'nav_doctor',    color: 'text-emerald-400',activeBg: 'bg-emerald-950/80',desc: 'AI Field Doctor'      },
-  { id: 'map',       icon: Map,       labelKey: 'nav_map',       color: 'text-red-400',    activeBg: 'bg-red-950/80',    desc: 'Pest Radar Map'       },
+  { id: 'home',      icon: Home,       label: 'DASHBOARD',      color: 'text-black',  activeBg: 'bg-[#FFD600]', desc: 'Farm Overview'            },
+  { id: 'simulator', icon: Zap,        label: 'SIMULATOR',      color: 'text-black',  activeBg: 'bg-[#FFD600]', desc: 'What-If Crop Yield' },
+  { id: 'climate',   icon: CloudRain,  label: 'RITURAKHOK',     color: 'text-black',  activeBg: 'bg-[#FFD600]', desc: 'Climate Forecast'     },
+  { id: 'doctor',    icon: Mic,        label: 'FIELD DOCTOR',   color: 'text-black',  activeBg: 'bg-[#FFD600]', desc: 'Voice AI Diagnosis'      },
+  { id: 'map',       icon: Map,        label: 'PEST RADAR',     color: 'text-black',  activeBg: 'bg-[#FFD600]', desc: 'Spread Map'       },
+  { id: 'uploader',  icon: Camera,     label: 'PHOTO UPLOAD',   color: 'text-black',  activeBg: 'bg-[#FFD600]', desc: 'Camera Input' },
+  { id: 'mandi',     icon: TrendingUp, label: 'MANDI OPTIMIZER',color: 'text-black',  activeBg: 'bg-[#FFD600]', desc: 'Market Prices' },
 ];
 
 interface SideNavProps {
-  activeTab: TabId;
-  onTabChange: (tab: TabId) => void;
+  activeTab?: TabId | 'time-machine';
+  onTabChange?: (tab: TabId) => void;
 }
 
-export function SideNav({ activeTab, onTabChange }: SideNavProps) {
+export function SideNav({ activeTab = 'home', onTabChange }: SideNavProps) {
   const { t } = useI18n();
 
   return (
-    <aside className="w-72 h-screen sticky top-0 flex flex-col bg-stone-900 border-r border-stone-800 overflow-y-auto">
+    <aside className="w-80 h-screen sticky top-0 flex flex-col bg-[#FFFDE7] border-r-4 border-black overflow-y-auto">
       {/* Logo */}
-      <div className="flex items-center gap-3.5 px-6 py-7 border-b border-stone-800">
-        <div className="p-2.5 bg-amber-500 rounded-xl shadow-lg shadow-amber-500/20">
-          <Leaf className="w-7 h-7 text-stone-900" />
+      <div className="flex items-center gap-4 px-6 py-8 border-b-4 border-black bg-[#FFD600]">
+        <div className="p-3 bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <Leaf className="w-8 h-8 text-black" />
         </div>
         <div>
-          <p className="text-xl font-bold text-amber-400 leading-none">MaatiKatha</p>
-          <p className="text-xs text-stone-500 mt-1">মাটিকথা · Farm Intelligence</p>
+          <p className="text-3xl font-black text-black leading-none tracking-tight">MaatiKatha</p>
+          <p className="text-sm font-bold text-black mt-1 uppercase">Farm Intelligence</p>
         </div>
       </div>
 
       {/* Nav Section Label */}
       <div className="px-6 pt-6 pb-2">
-        <p className="text-xs font-bold text-stone-600 uppercase tracking-widest">Navigation</p>
+        <p className="text-sm font-black text-black uppercase tracking-widest bg-black text-[#FFD600] inline-block px-2 py-1">NAVIGATION</p>
       </div>
 
       {/* Nav Items */}
-      <nav className="flex-1 px-3 space-y-1">
-        {TABS.map(({ id, icon: Icon, labelKey, color, activeBg, desc }) => {
+      <nav className="flex-1 px-4 space-y-3 mt-4">
+        {TABS.map(({ id, icon: Icon, label, color, activeBg, desc }) => {
           const isActive = activeTab === id;
           return (
             <button
               key={id}
-              onClick={() => onTabChange(id)}
+              onClick={() => onTabChange && id !== 'time-machine' ? onTabChange(id as TabId) : undefined}
               className={cn(
-                'w-full flex items-center gap-4 px-4 py-3.5 rounded-xl text-left transition-all group',
+                'w-full flex items-center gap-4 px-4 py-4 border-4 border-black text-left transition-all group shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]',
                 isActive
-                  ? cn(activeBg, 'shadow-sm')
-                  : 'hover:bg-stone-800 text-stone-400 hover:text-stone-200'
+                  ? cn(activeBg, 'translate-x-[2px] translate-y-[2px] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]')
+                  : 'bg-white hover:bg-yellow-50 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
               )}
             >
-              <div className={cn(
-                'p-2 rounded-lg transition-all',
-                isActive ? cn(color, 'bg-stone-900/50') : 'text-stone-500 group-hover:text-stone-300'
-              )}>
-                <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 1.8} />
+              <div className="text-black">
+                <Icon className="w-7 h-7" strokeWidth={isActive ? 3 : 2} />
               </div>
               <div className="min-w-0">
-                <p className={cn('text-base font-semibold leading-none', isActive ? color : '')}>{t[labelKey]}</p>
-                <p className="text-xs text-stone-500 mt-1 truncate">{desc}</p>
+                <p className="text-lg font-black leading-none text-black tracking-tight">{label}</p>
+                <p className="text-xs font-bold text-black/70 mt-1 uppercase tracking-wider truncate">{desc}</p>
               </div>
-              {isActive && (
-                <div className={cn('ml-auto w-1.5 h-6 rounded-full shrink-0', color.replace('text-', 'bg-'))} />
-              )}
             </button>
           );
         })}
+        
+        <Link href="/time-machine" className="w-full flex items-center gap-4 px-4 py-4 border-4 border-black text-left transition-all group shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] bg-white hover:bg-yellow-50 hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] mt-4">
+            <div className="text-black">
+              <Clock className="w-7 h-7" strokeWidth={2} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-lg font-black leading-none text-black tracking-tight">TIME MACHINE</p>
+              <p className="text-xs font-bold text-black/70 mt-1 uppercase tracking-wider truncate">Historical Baseline</p>
+            </div>
+        </Link>
       </nav>
 
       {/* Footer */}
-      <div className="px-6 py-5 border-t border-stone-800 space-y-3">
-        {/* Live indicator */}
-        <div className="flex items-center gap-2.5">
-          <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-          <span className="text-sm text-stone-400">Backend: <span className="text-amber-400 font-semibold">Demo Mode</span></span>
+      <div className="px-6 py-6 border-t-4 border-black bg-white mt-6">
+        <div className="flex items-center gap-3 mb-4">
+          <span className="w-3 h-3 bg-[#1B5E20] border-2 border-black rounded-full animate-pulse" />
+          <span className="text-sm font-black uppercase text-black">Live Mode</span>
         </div>
-
-        {/* Location */}
-        <div className="text-xs text-stone-600">
-          <p>📍 Nadia District, West Bengal</p>
-          <p className="mt-0.5">23.06°N · 88.44°E</p>
+        <div className="text-xs font-bold text-black uppercase space-y-1">
+          <p>📍 Nadia District, WB</p>
+          <p>23.06°N · 88.44°E</p>
         </div>
-
-        <p className="text-xs text-stone-700">MaatiKatha v0.1</p>
       </div>
     </aside>
   );
