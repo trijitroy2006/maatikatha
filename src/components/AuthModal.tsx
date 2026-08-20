@@ -2,19 +2,25 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { MapPin, Loader2, User, Phone } from 'lucide-react';
+import { MapPin, Loader2, KeyRound, User, Leaf } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const FALLBACK_LAT = 23.0822;
 const FALLBACK_LON = 88.5228;
 const FALLBACK_NAME = 'Chakdaha, West Bengal';
 
 export default function AuthModal() {
-  const { isAuthenticated, login, setFarmLocation } = useAuth();
+  const { isAuthenticated, login, register } = useAuth();
 
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+
+  const [farmerId, setFarmerId] = useState('');
+  const [password, setPassword] = useState('');
   const [farmerName, setFarmerName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  
   const [isLocating, setIsLocating] = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<{ lat: number; lon: number; name: string } | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
 
   // If already authenticated, don't show the modal
   if (isAuthenticated) return null;
@@ -50,84 +56,168 @@ export default function AuthModal() {
     );
   };
 
-  const handleStart = () => {
-    if (!farmerName.trim()) return;
-    const loc = detectedLocation || { lat: FALLBACK_LAT, lon: FALLBACK_LON, name: FALLBACK_NAME };
-    setFarmLocation(loc.lat, loc.lon, loc.name);
-    login(farmerName.trim());
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+
+    if (mode === 'login') {
+      if (!farmerId.trim() || !password) {
+        setErrorMsg('Please enter both ID and Password.');
+        return;
+      }
+      const success = login(farmerId, password);
+      if (!success) {
+        setErrorMsg('Invalid ID or Password.');
+      }
+    } else {
+      if (!farmerId.trim() || !password || !farmerName.trim()) {
+        setErrorMsg('Please fill out all fields.');
+        return;
+      }
+      const loc = detectedLocation || { lat: FALLBACK_LAT, lon: FALLBACK_LON, name: FALLBACK_NAME };
+      const success = register(farmerId, password, farmerName, loc.lat, loc.lon, loc.name);
+      if (!success) {
+        setErrorMsg('Farmer ID already exists! Please choose another one.');
+      }
+    }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl border border-gray-100 max-w-md w-full mt-16 p-8 space-y-8">
+    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 space-y-6 border border-slate-100 my-8">
+        
         <div className="text-center space-y-2">
-          <h1 className="font-bold text-3xl text-gray-900 tracking-tight">Maatikatha</h1>
-          <p className="text-gray-500 font-medium">The Farmer's Voice</p>
+          <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Leaf className="w-8 h-8 text-emerald-600" />
+          </div>
+          <h1 className="font-bold text-3xl text-slate-800 tracking-tight">
+            MaatiKatha
+          </h1>
+          <p className="font-medium text-slate-500">
+            {mode === 'login' ? 'Welcome back to your farm.' : 'Join the agricultural network.'}
+          </p>
         </div>
 
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-700 ml-1">Full Name</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-400" />
-              </div>
-              <input 
-                type="text" 
-                value={farmerName}
-                onChange={(e) => setFarmerName(e.target.value)}
-                placeholder="Enter your name"
-                className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-semibold text-gray-700 ml-1">Phone Number</label>
-            <div className="relative flex shadow-sm rounded-xl overflow-hidden border border-gray-200 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent transition-shadow">
-              <span className="inline-flex items-center px-3 bg-gray-50 text-gray-500 sm:text-sm border-r border-gray-200 font-medium">
-                +91
-              </span>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="00000 00000"
-                className="flex-1 block w-full px-3 py-3 text-gray-900 placeholder-gray-400 focus:outline-none"
-              />
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <Phone className="h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <button 
-            onClick={handleLocate}
-            disabled={isLocating}
-            className="w-full flex items-center justify-center gap-2 px-6 py-3 border border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl font-semibold transition-colors disabled:opacity-50"
+        {/* Toggle Mode */}
+        <div className="flex bg-slate-100 rounded-xl p-1 relative">
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setErrorMsg(''); }}
+            className={cn(
+              "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
+              mode === 'login' ? "bg-white text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            )}
           >
-            {isLocating ? <Loader2 className="animate-spin w-5 h-5" /> : <MapPin className="w-5 h-5" />}
-            {isLocating ? 'Locating...' : 'Locate My Farm'}
+            Log In
           </button>
+          <button
+            type="button"
+            onClick={() => { setMode('register'); setErrorMsg(''); }}
+            className={cn(
+              "flex-1 py-2 text-sm font-semibold rounded-lg transition-all",
+              mode === 'register' ? "bg-white text-emerald-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            )}
+          >
+            Register
+          </button>
+        </div>
 
-          {detectedLocation && (
-            <div className="flex items-center justify-center">
-              <span className="bg-emerald-50 text-emerald-800 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
-                <MapPin className="w-4 h-4" /> {detectedLocation.name}
-              </span>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {errorMsg && (
+            <div className="p-3 rounded-xl bg-rose-50 text-rose-600 text-sm font-medium border border-rose-100 text-center">
+              {errorMsg}
             </div>
           )}
-        </div>
 
-        <button 
-          onClick={handleStart}
-          disabled={!farmerName.trim()}
-          className="w-full flex items-center justify-center px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:hover:shadow-md min-h-[56px]"
-        >
-          Start Farming
-        </button>
+          {mode === 'register' && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Full Name</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <input 
+                  type="text" 
+                  value={farmerName}
+                  onChange={(e) => setFarmerName(e.target.value)}
+                  placeholder="e.g. Ramesh Kumar"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Farmer ID</label>
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input 
+                type="text" 
+                value={farmerId}
+                onChange={(e) => setFarmerId(e.target.value)}
+                placeholder="e.g. ramesh123"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Password</label>
+            <div className="relative">
+              <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-12 pr-4 text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          {mode === 'register' && (
+            <div className="pt-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1.5 block">Farm Location</label>
+              <button 
+                type="button"
+                onClick={handleLocate}
+                disabled={isLocating}
+                className={cn(
+                  "w-full rounded-xl py-3 px-4 font-semibold text-sm flex items-center justify-center gap-2 border transition-all",
+                  detectedLocation 
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-700" 
+                    : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                )}
+              >
+                {isLocating ? (
+                  <Loader2 className="animate-spin w-5 h-5" />
+                ) : (
+                  <MapPin className="w-5 h-5" />
+                )}
+                {isLocating 
+                  ? 'Locating...' 
+                  : detectedLocation 
+                    ? 'Location Saved!' 
+                    : 'Use GPS to Locate Farm'
+                }
+              </button>
+              {detectedLocation && (
+                <p className="text-xs text-emerald-600 font-medium text-center mt-2 px-2">
+                  📍 {detectedLocation.name}
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="pt-4">
+            <button 
+              type="submit"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-4 font-bold text-lg shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0"
+            >
+              {mode === 'login' ? 'Log In' : 'Create Account'}
+            </button>
+          </div>
+        </form>
+
       </div>
     </div>
   );
