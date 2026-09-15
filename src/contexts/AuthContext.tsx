@@ -18,6 +18,7 @@ export interface UserRecord {
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;       // true while restoring session from storage
   farmerId: string;
   farmerName: string;
   farmLocation: FarmLocation;
@@ -31,83 +32,94 @@ interface AuthContextType {
 const DEFAULT_LOCATION: FarmLocation = { lat: 23.0822, lon: 88.5228 };
 const DEFAULT_LOCATION_NAME = 'Chakdaha, West Bengal';
 
-const STORAGE_KEY_USERS = 'mk_db_users';
+const STORAGE_KEY_USERS   = 'mk_db_users';
 const STORAGE_KEY_SESSION = 'mk_session';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [farmerId, setFarmerId] = useState<string>('');
-  const [farmerName, setFarmerName] = useState<string>('');
-  const [farmLocation, setFarmLocationState] = useState<FarmLocation>(DEFAULT_LOCATION);
-  const [locationName, setLocationName] = useState<string>(DEFAULT_LOCATION_NAME);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading]             = useState(true);   // start true — we haven't checked storage yet
+  const [farmerId, setFarmerId]               = useState('');
+  const [farmerName, setFarmerName]           = useState('');
+  const [farmLocation, setFarmLocationState]  = useState<FarmLocation>(DEFAULT_LOCATION);
+  const [locationName, setLocationName]       = useState(DEFAULT_LOCATION_NAME);
 
-  // Restore state from localStorage on mount
+  // ── Restore session from localStorage on first mount ──────────────────────
   useEffect(() => {
     try {
-      const session = localStorage.getItem(STORAGE_KEY_SESSION);
-      if (session) {
-        const parsedSession = JSON.parse(session) as { id: string };
-        const usersStr = localStorage.getItem(STORAGE_KEY_USERS);
-        if (usersStr && parsedSession.id) {
-          const users = JSON.parse(usersStr) as Record<string, UserRecord>;
-          const user = users[parsedSession.id];
-          if (user) {
-            setFarmerId(user.id);
-            setFarmerName(user.name);
-            setFarmLocationState({ lat: user.lat, lon: user.lon });
-            setLocationName(user.locationName);
-            setIsAuthenticated(true);
-          }
+      const sessionStr = localStorage.getItem(STORAGE_KEY_SESSION);
+      const usersStr   = localStorage.getItem(STORAGE_KEY_USERS);
+
+      if (sessionStr && usersStr) {
+        const session = JSON.parse(sessionStr) as { id: string };
+        const users   = JSON.parse(usersStr)   as Record<string, UserRecord>;
+        const user    = users[session.id];
+
+        if (user) {
+          setFarmerId(user.id);
+          setFarmerName(user.name);
+          setFarmLocationState({ lat: user.lat, lon: user.lon });
+          setLocationName(user.locationName);
+          setIsAuthenticated(true);
         }
       }
     } catch {
-      // Corrupt localStorage - ignore and use defaults
+      // corrupt storage — start fresh
+    } finally {
+      setIsLoading(false);  // done checking — hide the splash screen
     }
   }, []);
 
-  const _saveSession = (user: UserRecord) => {
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  const _applyUser = (user: UserRecord) => {
     setFarmerId(user.id);
     setFarmerName(user.name);
     setFarmLocationState({ lat: user.lat, lon: user.lon });
     setLocationName(user.locationName);
     setIsAuthenticated(true);
-    try {
-      localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify({ id: user.id }));
-    } catch {}
+    localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify({ id: user.id }));
   };
 
+  const _readUsers = (): Record<string, UserRecord> => {
+    const raw = localStorage.getItem(STORAGE_KEY_USERS);
+    return raw ? (JSON.parse(raw) as Record<string, UserRecord>) : {};
+  };
+
+  const _writeUsers = (users: Record<string, UserRecord>) => {
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+  };
+
+  // ── Public API ─────────────────────────────────────────────────────────────
   const login = (id: string, pass: string): boolean => {
     try {
-      const usersStr = localStorage.getItem(STORAGE_KEY_USERS);
-      if (!usersStr) return false;
-      const users = JSON.parse(usersStr) as Record<string, UserRecord>;
-      const user = users[id];
+      const users = _readUsers();
+      const user  = users[id.trim()];
       if (user && user.pass === pass) {
-        _saveSession(user);
+        _applyUser(user);
         return true;
       }
-    } catch {}
+    } catch { /* ignore */ }
     return false;
   };
 
-  const register = (id: string, pass: string, name: string, lat: number, lon: number, locName: string): boolean => {
-    const trimmedId = id.trim();
-    if (!trimmedId) return false;
-
+  const register = (
+    id: string, pass: string, name: string,
+    lat: number, lon: number, locName: string
+  ): boolean => {
+    const trimId = id.trim();
+    if (!trimId) return false;
     try {
-      const usersStr = localStorage.getItem(STORAGE_KEY_USERS);
-      const users: Record<string, UserRecord> = usersStr ? JSON.parse(usersStr) : {};
-      
-      // Check if ID already exists
-      if (users[trimmedId]) return false;
+      const users = _readUsers();
+      if (users[trimId]) return false;   // ID already taken
 
-      const newUser: UserRecord = { id: trimmedId, pass, name: name.trim(), lat, lon, locationName: locName };
-      users[trimmedId] = newUser;
-      
-      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-      _saveSession(newUser);
+      const newUser: UserRecord = {
+        id: trimId, pass, name: name.trim(),
+        lat, lon, locationName: locName,
+      };
+      users[trimId] = newUser;
+      _writeUsers(users);
+      _applyUser(newUser);
       return true;
     } catch {
       return false;
@@ -117,56 +129,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setFarmerId('');
     setFarmerName('');
+    setFarmLocationState(DEFAULT_LOCATION);
+    setLocationName(DEFAULT_LOCATION_NAME);
     setIsAuthenticated(false);
-    try {
-      localStorage.removeItem(STORAGE_KEY_SESSION);
-    } catch {}
+    localStorage.removeItem(STORAGE_KEY_SESSION);
+    // Note: we keep mk_db_users so the farmer can log back in without re-registering
   };
 
   const setFarmLocation = (lat: number, lon: number, name: string) => {
     setFarmLocationState({ lat, lon });
     setLocationName(name);
-    
-    // Update the DB if authenticated
+
     if (isAuthenticated && farmerId) {
       try {
-        const usersStr = localStorage.getItem(STORAGE_KEY_USERS);
-        if (usersStr) {
-          const users = JSON.parse(usersStr) as Record<string, UserRecord>;
-          if (users[farmerId]) {
-            users[farmerId].lat = lat;
-            users[farmerId].lon = lon;
-            users[farmerId].locationName = name;
-            localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
-          }
+        const users = _readUsers();
+        if (users[farmerId]) {
+          users[farmerId].lat          = lat;
+          users[farmerId].lon          = lon;
+          users[farmerId].locationName = name;
+          _writeUsers(users);
         }
-      } catch {}
+      } catch { /* ignore */ }
     }
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        farmerId,
-        farmerName,
-        farmLocation,
-        locationName,
-        login,
-        register,
-        logout,
-        setFarmLocation,
-      }}
-    >
+    <AuthContext.Provider value={{
+      isAuthenticated, isLoading,
+      farmerId, farmerName, farmLocation, locationName,
+      login, register, logout, setFarmLocation,
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
 export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  return ctx;
 }
