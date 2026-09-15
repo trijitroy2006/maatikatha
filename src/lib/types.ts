@@ -59,8 +59,8 @@ export interface ClimateResponse {
 }
 
 // ---- Voice Doctor ----
-export type SupportedLang = 'bn' | 'hi';
-export type SpeechLangCode = 'bn-IN' | 'hi-IN';
+export type SupportedLang   = 'bn' | 'hi' | 'en';
+export type SpeechLangCode  = 'bn-IN' | 'hi-IN' | 'en-IN';
 
 export interface DoctorPayload {
   textQuery?: string;
