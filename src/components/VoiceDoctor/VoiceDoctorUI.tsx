@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Mic, MicOff, StopCircle, Volume2,
-  AlertTriangle, Loader2, Send, Languages,
+  AlertTriangle, Loader2, Send, Languages, Sparkles,
 } from 'lucide-react';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
@@ -64,7 +64,7 @@ interface ChatMessage {
   id: number;
   role: 'user' | 'bot' | 'mismatch';
   text: string;
-  response?: DoctorResponse & { lang_mismatch?: boolean };
+  response?: DoctorResponse & { lang_mismatch?: boolean; powered_by?: 'gemini' | 'rules' };
 }
 
 export function VoiceDoctorUI() {
@@ -143,9 +143,13 @@ export function VoiceDoctorUI() {
         <div className="p-3 bg-emerald-600 rounded-2xl">
           <Mic className="w-8 h-8 text-white" />
         </div>
-        <div>
+        <div className="flex-1">
           <h2 className="text-3xl font-bold text-emerald-400">AI Field Doctor</h2>
           <p className="text-stone-400 font-medium text-sm mt-0.5">Ask about any crop disease — in your language</p>
+        </div>
+        <div className="flex items-center gap-1.5 bg-gradient-to-r from-blue-900/60 to-purple-900/60 border border-blue-500/40 rounded-xl px-3 py-1.5">
+          <Sparkles className="w-4 h-4 text-blue-400" />
+          <span className="text-xs font-bold text-blue-300">Gemini AI</span>
         </div>
       </div>
 
@@ -212,10 +216,17 @@ export function VoiceDoctorUI() {
             {/* Bot response bubble */}
             {msg.role === 'bot' && msg.response && (
               <div className={cn('max-w-[90%] border-2 rounded-2xl rounded-bl-sm px-5 py-4 space-y-3', SEVERITY_STYLES[msg.response.severity])}>
-                {/* Severity badge */}
-                <span className="inline-block text-xs font-bold uppercase tracking-wider opacity-70 border border-current rounded-full px-3 py-0.5">
-                  {SEVERITY_LABEL[lang][msg.response.severity]}
-                </span>
+                {/* Top row: severity + AI badge */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-block text-xs font-bold uppercase tracking-wider opacity-70 border border-current rounded-full px-3 py-0.5">
+                    {SEVERITY_LABEL[lang][msg.response.severity]}
+                  </span>
+                  {msg.response.powered_by === 'gemini' && (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-400/30 rounded-full px-2.5 py-0.5">
+                      <Sparkles className="w-3 h-3" /> Gemini AI
+                    </span>
+                  )}
+                </div>
 
                 {/* Diagnosis */}
                 {msg.response.diagnosis && (
