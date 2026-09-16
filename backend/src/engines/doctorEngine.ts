@@ -4,8 +4,6 @@
 // Falls back to rule-based engine if API key not configured
 // ============================================================
 
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
-
 export type SupportedLang = 'en' | 'hi' | 'bn';
 
 export interface DoctorQuery {
@@ -79,58 +77,99 @@ SEVERITY RULES:
 Be concise, practical, and use terminology a village farmer would understand. Avoid complex scientific jargon.`;
 };
 
-// ── Gemini AI call ────────────────────────────────────────────────────────────
+// ── Gemini AI call (direct REST — compatible with all key types) ──────────────
 async function askGemini(query: string, lang: SupportedLang): Promise<DoctorResult> {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
+  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY_HERE' || apiKey.trim().length < 10) {
     throw new Error('GEMINI_API_KEY not configured');
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
-    safetySettings: [
-      { category: HarmCategory.HARM_CATEGORY_HARASSMENT,        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-      { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,       threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-      { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-    ],
-    generationConfig: {
-      temperature: 0.4,
-      maxOutputTokens: 1024,
-      responseMimeType: 'application/json',
-    },
-    systemInstruction: SYSTEM_PROMPT(lang),
-  });
+  const systemPromptText = SYSTEM_PROMPT(lang);
 
-  const result = await model.generateContent(query);
-  const text   = result.response.text().trim();
+  // Try models in order of preference
+  const MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro', 'gemini-1.0-pro'];
+  let lastError: Error | null = null;
 
-  // Parse JSON response
-  const parsed = JSON.parse(text) as {
-    answer_text: string;
-    diagnosis: string | null;
-    severity: 'info' | 'caution' | 'urgent';
-    recommended_actions: string[];
-    off_topic: boolean;
-  };
+  for (const modelName of MODELS) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
 
-  // Off-topic question
-  if (parsed.off_topic) {
-    const offTopicMsg: Record<SupportedLang, string> = {
-      en: "I can only help with agriculture, farming, crops, and related topics. Please ask me about your farm or crops!",
-      hi: "मैं केवल कृषि, खेती, फसलों और संबंधित विषयों में मदद कर सकता हूं। कृपया अपनी खेती या फसल के बारे में पूछें!",
-      bn: "আমি শুধুমাত্র কৃষি, চাষাবাদ, ফসল এবং সংশ্লিষ্ট বিষয়ে সাহায্য করতে পারি। অনুগ্রহ করে আপনার খামার বা ফসল সম্পর্কে জিজ্ঞেস করুন!",
-    };
-    return { answer_text: offTopicMsg[lang], severity: 'info', recommended_actions: [], powered_by: 'gemini' };
+      const body = {
+        system_instruction: { parts: [{ text: systemPromptText }] },
+        contents: [{ role: 'user', parts: [{ text: query }] }],
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 1024,
+          responseMimeType: 'application/json',
+        },
+        safetySettings: [
+          { category: 'HARM_CATEGORY_HARASSMENT',        threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          { category: 'HARM_CATEGORY_HATE_SPEECH',       threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+        ],
+      };
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        // Model not found → try next model
+        if (res.status === 404) {
+          lastError = new Error(`${modelName} not found (404)`);
+          continue;
+        }
+        // Bad API key
+        if (res.status === 400 || res.status === 403) {
+          throw new Error(`API key error (${res.status}): ${errText}`);
+        }
+        throw new Error(`Gemini HTTP ${res.status}: ${errText}`);
+      }
+
+      const data = await res.json() as any;
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (!text) throw new Error('Empty response from Gemini');
+
+      // Some models don't respect responseMimeType — strip markdown fences if present
+      const cleaned = text.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+      const parsed = JSON.parse(cleaned) as {
+        answer_text: string;
+        diagnosis: string | null;
+        severity: 'info' | 'caution' | 'urgent';
+        recommended_actions: string[];
+        off_topic: boolean;
+      };
+
+      if (parsed.off_topic) {
+        const offTopicMsg: Record<SupportedLang, string> = {
+          en: "I can only help with agriculture, farming, crops, and related topics. Please ask me about your farm or crops!",
+          hi: "मैं केवल कृषि, खेती, फसलों और संबंधित विषयों में मदद कर सकता हूं। कृपया अपनी खेती या फसल के बारे में पूछें!",
+          bn: "আমি শুধুমাত্র কৃষি, চাষাবাদ, ফসল এবং সংশ্লিষ্ট বিষয়ে সাহায্য করতে পারি। অনুগ্রহ করে আপনার খামার বা ফসল সম্পর্কে জিজ্ঞেস করুন!",
+        };
+        return { answer_text: offTopicMsg[lang], severity: 'info', recommended_actions: [], powered_by: 'gemini' };
+      }
+
+      return {
+        answer_text:         parsed.answer_text,
+        diagnosis:           parsed.diagnosis || undefined,
+        severity:            parsed.severity  || 'info',
+        recommended_actions: parsed.recommended_actions || [],
+        powered_by:          'gemini',
+      };
+
+    } catch (err: any) {
+      if (err?.message?.includes('404') || err?.message?.includes('not found')) {
+        lastError = err;
+        continue; // try next model
+      }
+      throw err; // rethrow real errors (bad key, network, etc.)
+    }
   }
 
-  return {
-    answer_text:         parsed.answer_text,
-    diagnosis:           parsed.diagnosis || undefined,
-    severity:            parsed.severity || 'info',
-    recommended_actions: parsed.recommended_actions || [],
-    powered_by:          'gemini',
-  };
+  throw lastError || new Error('All Gemini models unavailable');
 }
 
 // ── Rule-based fallback ───────────────────────────────────────────────────────
@@ -262,9 +301,9 @@ export async function diagnose(query: DoctorQuery): Promise<DoctorResult> {
   try {
     return await askGemini(text, selected);
   } catch (err: any) {
-    const isKeyMissing = err?.message?.includes('not configured') || err?.message?.includes('API_KEY');
+    const isKeyMissing = err?.message?.includes('not configured');
     if (!isKeyMissing) {
-      console.error('Gemini API error:', err?.message);
+      console.error('Gemini API error:', err?.message, err?.status, JSON.stringify(err?.errorDetails));
     }
     // 3. Fall back to rule-based engine
     return ruleBasedDiagnose(text, selected);
