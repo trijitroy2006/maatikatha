@@ -2,12 +2,23 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { MapPin, Loader2, KeyRound, User, Leaf } from 'lucide-react';
+import { MapPin, Loader2, KeyRound, User, Leaf, PenLine, Navigation } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const FALLBACK_LAT  = 23.0822;
 const FALLBACK_LON  = 88.5228;
 const FALLBACK_NAME = 'Chakdaha, West Bengal';
+
+// Indian states list
+const INDIAN_STATES = [
+  'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh',
+  'Goa','Gujarat','Haryana','Himachal Pradesh','Jharkhand','Karnataka',
+  'Kerala','Madhya Pradesh','Maharashtra','Manipur','Meghalaya','Mizoram',
+  'Nagaland','Odisha','Punjab','Rajasthan','Sikkim','Tamil Nadu','Telangana',
+  'Tripura','Uttar Pradesh','Uttarakhand','West Bengal',
+  'Andaman & Nicobar Islands','Chandigarh','Dadra & Nagar Haveli','Daman & Diu',
+  'Delhi','Jammu & Kashmir','Ladakh','Lakshadweep','Puducherry',
+];
 
 export default function AuthModal() {
   const { isAuthenticated, isLoading, login, register } = useAuth();
@@ -17,13 +28,24 @@ export default function AuthModal() {
   const [password, setPassword]   = useState('');
   const [farmerName, setFarmerName] = useState('');
 
-  const [isLocating, setIsLocating]   = useState(false);
+  // Location mode: 'none' | 'gps' | 'manual'
+  const [locationMode, setLocationMode] = useState<'none' | 'gps' | 'manual'>('none');
+
+  // GPS state
+  const [isLocating, setIsLocating]     = useState(false);
   const [detectedLocation, setDetectedLocation] = useState<{
     lat: number; lon: number; name: string;
   } | null>(null);
+
+  // Manual state
+  const [manualVillage,  setManualVillage]  = useState('');
+  const [manualDistrict, setManualDistrict] = useState('');
+  const [manualState,    setManualState]    = useState('West Bengal');
+  const [manualPinCode,  setManualPinCode]  = useState('');
+
   const [errorMsg, setErrorMsg] = useState('');
 
-  // ── 1. While checking localStorage show a subtle full-screen spinner ──────
+  // ── Loading splash ──────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 bg-slate-50 flex flex-col items-center justify-center gap-4">
@@ -35,12 +57,12 @@ export default function AuthModal() {
     );
   }
 
-  // ── 2. Already authenticated — modal not needed ───────────────────────────
   if (isAuthenticated) return null;
 
-  // ── GPS helper ────────────────────────────────────────────────────────────
+  // ── GPS locate ──────────────────────────────────────────────────────────────
   const handleLocate = () => {
     setIsLocating(true);
+    setDetectedLocation(null);
     if (!navigator.geolocation) {
       setDetectedLocation({ lat: FALLBACK_LAT, lon: FALLBACK_LON, name: FALLBACK_NAME });
       setIsLocating(false);
@@ -54,7 +76,8 @@ export default function AuthModal() {
           );
           const data = await res.json();
           setDetectedLocation({
-            lat: pos.coords.latitude, lon: pos.coords.longitude,
+            lat: pos.coords.latitude,
+            lon: pos.coords.longitude,
             name: data.display_name || FALLBACK_NAME,
           });
         } catch {
@@ -68,7 +91,27 @@ export default function AuthModal() {
     );
   };
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
+  // ── Build location from manual fields ──────────────────────────────────────
+  const buildManualLocation = () => {
+    const parts = [manualVillage.trim(), manualDistrict.trim(), manualState.trim(), manualPinCode.trim()]
+      .filter(Boolean);
+    const name = parts.join(', ') || FALLBACK_NAME;
+    // Use state-level centroid coords as approximate lat/lon for manual entry
+    const STATE_COORDS: Record<string, [number, number]> = {
+      'West Bengal': [22.9868, 87.8550], 'Bihar': [25.0961, 85.3131],
+      'Uttar Pradesh': [26.8467, 80.9462], 'Punjab': [31.1471, 75.3412],
+      'Haryana': [29.0588, 76.0856], 'Maharashtra': [19.7515, 75.7139],
+      'Madhya Pradesh': [22.9734, 78.6569], 'Gujarat': [22.2587, 71.1924],
+      'Rajasthan': [27.0238, 74.2179], 'Karnataka': [15.3173, 75.7139],
+      'Tamil Nadu': [11.1271, 78.6569], 'Andhra Pradesh': [15.9129, 79.7400],
+      'Odisha': [20.9517, 85.0985], 'Assam': [26.2006, 92.9376],
+      'Jharkhand': [23.6102, 85.2799], 'Chhattisgarh': [21.2787, 81.8661],
+    };
+    const [lat, lon] = STATE_COORDS[manualState] ?? [FALLBACK_LAT, FALLBACK_LON];
+    return { lat, lon, name };
+  };
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -81,23 +124,44 @@ export default function AuthModal() {
       if (!login(farmerId.trim(), password)) {
         setErrorMsg('Incorrect Farmer ID or Password. Try again.');
       }
-    } else {
-      if (!farmerId.trim() || !password || !farmerName.trim()) {
-        setErrorMsg('Please fill in all fields.');
+      return;
+    }
+
+    // Register
+    if (!farmerId.trim() || !password || !farmerName.trim()) {
+      setErrorMsg('Please fill in all fields.');
+      return;
+    }
+    if (password.length < 6) {
+      setErrorMsg('Password must be at least 6 characters.');
+      return;
+    }
+
+    // Resolve location
+    let loc = { lat: FALLBACK_LAT, lon: FALLBACK_LON, name: FALLBACK_NAME };
+    if (locationMode === 'gps' && detectedLocation) {
+      loc = detectedLocation;
+    } else if (locationMode === 'manual') {
+      if (!manualDistrict.trim() || !manualState.trim()) {
+        setErrorMsg('Please enter at least District and State for your farm location.');
         return;
       }
-      if (password.length < 6) {
-        setErrorMsg('Password must be at least 6 characters.');
-        return;
-      }
-      const loc = detectedLocation ?? { lat: FALLBACK_LAT, lon: FALLBACK_LON, name: FALLBACK_NAME };
-      if (!register(farmerId.trim(), password, farmerName.trim(), loc.lat, loc.lon, loc.name)) {
-        setErrorMsg('That Farmer ID is already taken. Please choose another.');
-      }
+      loc = buildManualLocation();
+    }
+
+    if (!register(farmerId.trim(), password, farmerName.trim(), loc.lat, loc.lon, loc.name)) {
+      setErrorMsg('That Farmer ID is already taken. Please choose another.');
     }
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const resetMode = (m: 'login' | 'register') => {
+    setMode(m);
+    setErrorMsg('');
+    setLocationMode('none');
+    setDetectedLocation(null);
+  };
+
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 space-y-6 border border-slate-100 my-8">
@@ -119,7 +183,7 @@ export default function AuthModal() {
             <button
               key={m}
               type="button"
-              onClick={() => { setMode(m); setErrorMsg(''); }}
+              onClick={() => resetMode(m)}
               className={cn(
                 'flex-1 py-2 text-sm font-semibold rounded-lg transition-all capitalize',
                 mode === m
@@ -190,33 +254,142 @@ export default function AuthModal() {
             </div>
           </div>
 
-          {/* GPS — register only */}
+          {/* ── Farm Location (register only) ─────────────────────────────── */}
           {mode === 'register' && (
-            <div className="pt-1">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-1.5 block">
+            <div className="space-y-3 pt-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 block">
                 Farm Location <span className="font-normal normal-case text-slate-400">(optional)</span>
               </label>
-              <button
-                type="button"
-                onClick={handleLocate}
-                disabled={isLocating}
-                className={cn(
-                  'w-full rounded-xl py-3 px-4 font-semibold text-sm flex items-center justify-center gap-2 border transition-all',
-                  detectedLocation
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
-                )}
-              >
-                {isLocating
-                  ? <Loader2 className="animate-spin w-5 h-5" />
-                  : <MapPin className="w-5 h-5" />
-                }
-                {isLocating ? 'Locating…' : detectedLocation ? '📍 Location Saved!' : 'Use GPS to Locate My Farm'}
-              </button>
-              {detectedLocation && (
-                <p className="text-xs text-emerald-600 font-medium text-center mt-2 px-2 truncate">
-                  {detectedLocation.name}
-                </p>
+
+              {/* GPS / Manual toggle buttons */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLocationMode('gps');
+                    setDetectedLocation(null);
+                    handleLocate();
+                  }}
+                  className={cn(
+                    'rounded-xl py-3 px-3 font-semibold text-sm flex items-center justify-center gap-2 border transition-all',
+                    locationMode === 'gps'
+                      ? 'bg-emerald-50 border-emerald-400 text-emerald-700'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
+                  )}
+                >
+                  {isLocating && locationMode === 'gps'
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Navigation className="w-4 h-4" />
+                  }
+                  {isLocating && locationMode === 'gps' ? 'Locating…' : 'Use GPS'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setLocationMode(prev => prev === 'manual' ? 'none' : 'manual')}
+                  className={cn(
+                    'rounded-xl py-3 px-3 font-semibold text-sm flex items-center justify-center gap-2 border transition-all',
+                    locationMode === 'manual'
+                      ? 'bg-blue-50 border-blue-400 text-blue-700'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
+                  )}
+                >
+                  <PenLine className="w-4 h-4" />
+                  Enter Manually
+                </button>
+              </div>
+
+              {/* GPS result */}
+              {locationMode === 'gps' && detectedLocation && (
+                <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <MapPin className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-emerald-700">GPS Location Saved ✓</p>
+                    <p className="text-xs text-emerald-600 mt-0.5 line-clamp-2 leading-relaxed">
+                      {detectedLocation.name}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Manual entry form */}
+              {locationMode === 'manual' && (
+                <div className="space-y-3 p-4 bg-blue-50/50 border border-blue-100 rounded-2xl">
+                  <p className="text-xs font-semibold text-blue-700 flex items-center gap-1.5">
+                    <PenLine className="w-3.5 h-3.5" /> Enter your farm location manually
+                  </p>
+
+                  {/* Village / Town */}
+                  <div>
+                    <label className="text-xs text-slate-500 font-medium ml-1 mb-1 block">
+                      Village / Town
+                    </label>
+                    <input
+                      type="text"
+                      value={manualVillage}
+                      onChange={e => setManualVillage(e.target.value)}
+                      placeholder="e.g. Krishnapur"
+                      className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* District */}
+                  <div>
+                    <label className="text-xs text-slate-500 font-medium ml-1 mb-1 block">
+                      District <span className="text-rose-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={manualDistrict}
+                      onChange={e => setManualDistrict(e.target.value)}
+                      placeholder="e.g. Nadia"
+                      className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* State dropdown */}
+                  <div>
+                    <label className="text-xs text-slate-500 font-medium ml-1 mb-1 block">
+                      State <span className="text-rose-400">*</span>
+                    </label>
+                    <select
+                      value={manualState}
+                      onChange={e => setManualState(e.target.value)}
+                      className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none transition-all appearance-none cursor-pointer"
+                    >
+                      {INDIAN_STATES.map(s => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Pin Code */}
+                  <div>
+                    <label className="text-xs text-slate-500 font-medium ml-1 mb-1 block">
+                      PIN Code
+                    </label>
+                    <input
+                      type="text"
+                      value={manualPinCode}
+                      onChange={e => setManualPinCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="e.g. 741222"
+                      maxLength={6}
+                      inputMode="numeric"
+                      className="w-full bg-white border border-slate-200 rounded-xl py-2.5 px-4 text-slate-800 font-medium text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Preview */}
+                  {(manualVillage || manualDistrict) && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <MapPin className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                      <p className="text-xs text-blue-700 font-medium">
+                        {[manualVillage, manualDistrict, manualState, manualPinCode]
+                          .filter(Boolean).join(', ')}
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -231,7 +404,6 @@ export default function AuthModal() {
             </button>
           </div>
 
-          {/* Helpful hint */}
           <p className="text-center text-xs text-slate-400 font-medium pt-1">
             {mode === 'login'
               ? "Don't have an account? Switch to Register above."
