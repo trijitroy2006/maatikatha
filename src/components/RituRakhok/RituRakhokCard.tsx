@@ -110,13 +110,16 @@ export function RituRakhokCard({ lat = 23.06, lon = 88.46 }: RituRakhokCardProps
             <div className="bg-stone-800 border border-stone-600 rounded-2xl p-5 space-y-3">
               <h3 className="text-base font-bold text-stone-400 uppercase tracking-wider">🌤️ {t.climate_forecast_label}</h3>
               <div className="space-y-2 overflow-y-auto max-h-52">
-                {data.forecast_14d.slice(0, 7).map((day, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-base py-1.5 border-b border-stone-700 last:border-0">
-                    <span className="text-stone-400 w-16 shrink-0">{day.date}</span>
-                    <span className="text-stone-200">{day.condition}</span>
-                    <span className="text-sky-300 font-semibold">{day.rainfall_mm.toFixed(0)}mm</span>
-                  </div>
-                ))}
+                {data.forecast_14d.map((day, idx) => {
+                  const label = (() => { try { const d = new Date(day.date + 'T00:00:00'); return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); } catch { return day.date; } })();
+                  return (
+                    <div key={idx} className="flex items-center justify-between py-1.5 border-b border-stone-700 last:border-0">
+                      <span className="text-stone-400 w-14 shrink-0 text-sm">{label}</span>
+                      <span className="text-stone-200 text-sm flex-1 text-center">{day.condition}</span>
+                      <span className="text-sky-300 font-semibold text-sm">{day.rainfall_mm.toFixed(1)}mm</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -132,17 +135,36 @@ export function RituRakhokCard({ lat = 23.06, lon = 88.46 }: RituRakhokCardProps
               detail={data.mulching_action} />
           </div>
 
-          {/* Rainfall Bar Chart */}
+          {/* 14-Day Rainfall Bar Chart — FIXED */}
           <div className="bg-stone-800 border border-stone-600 rounded-2xl p-5">
-            <h3 className="text-base font-bold text-stone-400 uppercase mb-4">14-Day Rainfall Forecast</h3>
-            <div className="flex items-end gap-1 h-24">
+            <h3 className="text-base font-bold text-stone-400 uppercase mb-4">☔ 14-Day Rainfall Forecast</h3>
+            <div className="flex items-end gap-1 h-28">
               {data.forecast_14d.map((day, idx) => {
-                const maxRain = Math.max(...data.forecast_14d.map((d) => d.rainfall_mm));
-                const heightPct = (day.rainfall_mm / maxRain) * 100;
+                // FIX: Math.max(..., 1) prevents divide-by-zero when all values are 0
+                const maxRain = Math.max(...data.forecast_14d.map((d) => d.rainfall_mm), 1);
+                // FIX: ensure minimum visible bar height for days with any rainfall
+                const heightPct = day.rainfall_mm > 0
+                  ? Math.max((day.rainfall_mm / maxRain) * 100, 8)
+                  : 3;
+                const label = (() => { try { const d = new Date(day.date + 'T00:00:00'); return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }); } catch { return day.date; } })();
+                const barColor = day.rainfall_mm === 0 ? 'bg-stone-700' :
+                                 day.rainfall_mm < 2   ? 'bg-sky-300'   :
+                                 day.rainfall_mm < 10  ? 'bg-sky-500'   :
+                                 day.rainfall_mm < 30  ? 'bg-blue-500'  : 'bg-blue-700';
                 return (
-                  <div key={idx} className="flex-1 flex flex-col items-center gap-1">
-                    <div className="w-full bg-sky-500 rounded-t-sm" style={{ height: `${heightPct}%` }} title={`${day.date}: ${day.rainfall_mm.toFixed(1)}mm`} />
-                    <span className="text-[10px] text-stone-500">{idx + 1}</span>
+                  <div key={idx} className="flex-1 flex flex-col items-center gap-0.5 group relative">
+                    {/* Hover tooltip */}
+                    <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-20 pointer-events-none">
+                      <div className="bg-stone-900 border border-stone-600 text-white text-[10px] rounded-lg px-2 py-1.5 whitespace-nowrap shadow-xl text-center">
+                        <div className="font-bold text-sky-300">{label}</div>
+                        <div className="text-stone-100">{day.rainfall_mm.toFixed(1)} mm</div>
+                        <div className="text-stone-400">{day.condition}</div>
+                        <div className="text-stone-500">{day.temp_max}°/{day.temp_min}°C</div>
+                      </div>
+                      <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-stone-900"/>
+                    </div>
+                    <div className={`w-full ${barColor} rounded-t transition-all duration-700`} style={{ height: `${heightPct}%` }} />
+                    <span className="text-[8px] text-stone-600">{idx + 1}</span>
                   </div>
                 );
               })}
