@@ -1,13 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Home, Zap, CloudRain, Mic, Map as MapIcon, Leaf, Camera, TrendingUp, Clock, LogOut } from 'lucide-react';
+import { Home, Zap, CloudRain, Mic, Map as MapIcon, Leaf, Camera, TrendingUp, Clock, LogOut, Microscope, Radio, Beaker } from 'lucide-react';
 import { useI18n } from '@/contexts/i18nContext';
 import { cn } from '@/lib/utils';
 import type { TabId } from './BottomNav';
 import { useAuth } from '@/contexts/AuthContext';
 
-const TABS: { id: TabId; icon: any; label: string; activeColor: string; desc: string }[] = [
+const TABS: { id: TabId; icon: any; label: string; activeColor: string; desc: string; group?: string }[] = [
+  // ── Phase I ────────────────────────────────────────────────
   { id: 'home',         icon: Home,       label: 'Dashboard',       activeColor: 'text-emerald-600 bg-emerald-50', desc: 'Farm Overview'        },
   { id: 'simulator',    icon: Zap,        label: 'Simulator',       activeColor: 'text-amber-600 bg-amber-50',     desc: 'What-If Crop Yield'   },
   { id: 'climate',      icon: CloudRain,  label: 'RituRakhok',      activeColor: 'text-sky-600 bg-sky-50',         desc: 'Climate Forecast'     },
@@ -15,7 +16,11 @@ const TABS: { id: TabId; icon: any; label: string; activeColor: string; desc: st
   { id: 'map',          icon: MapIcon,    label: 'Pest Radar',      activeColor: 'text-rose-600 bg-rose-50',       desc: 'Spread Map'           },
   { id: 'uploader',     icon: Camera,     label: 'Photo Upload',    activeColor: 'text-blue-600 bg-blue-50',       desc: 'Camera Input'         },
   { id: 'mandi',        icon: TrendingUp, label: 'Mandi Optimizer', activeColor: 'text-green-600 bg-green-50',     desc: 'Market Prices'        },
-  { id: 'time-machine', icon: Clock,      label: 'Time Machine',    activeColor: 'text-purple-600 bg-purple-50',   desc: 'Historical Baseline'  },
+  { id: 'time-machine', icon: Clock,      label: 'Time Machine',    activeColor: 'text-purple-600 bg-purple-50',   desc: 'Historical Baseline', group: 'separator' },
+  // ── Phase II ───────────────────────────────────────────────
+  { id: 'chitrodrishti', icon: Microscope, label: 'ChitroDrishti',     activeColor: 'text-violet-600 bg-violet-50',  desc: 'AI Disease Triage',    group: 'phase2' },
+  { id: 'shorrakhok',    icon: Radio,      label: 'ShorraKhok',        activeColor: 'text-rose-600 bg-rose-50',      desc: 'Acoustic Pest Radar',  group: 'phase2' },
+  { id: 'soil',          icon: Beaker,     label: 'Soil Spectroscopy', activeColor: 'text-amber-600 bg-amber-50',    desc: 'Carbon Analysis',      group: 'phase2' },
 ];
 
 interface SideNavProps {
@@ -47,27 +52,38 @@ export function SideNav({ activeTab = 'home', onTabChange }: SideNavProps) {
 
       {/* Nav Items */}
       <nav className="flex-1 px-4 space-y-1 mt-1">
-        {TABS.map(({ id, icon: Icon, label, activeColor, desc }) => {
+        {TABS.map(({ id, icon: Icon, label, activeColor, desc, group }) => {
           const isActive = activeTab === id;
           return (
-            <button
-              key={id}
-              onClick={() => onTabChange?.(id)}
-              className={cn(
-                'w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all group',
-                isActive
-                  ? activeColor
-                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+            <React.Fragment key={id}>
+              {/* Phase II section label */}
+              {group === 'phase2' && id === 'chitrodrishti' && (
+                <div className="pt-3 pb-1 px-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-px bg-slate-100" />
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Phase II</span>
+                    <div className="flex-1 h-px bg-slate-100" />
+                  </div>
+                </div>
               )}
-            >
-              <div className={cn('transition-colors', isActive ? '' : 'text-slate-400 group-hover:text-slate-600')}>
-                <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
-              </div>
-              <div className="min-w-0">
-                <p className={cn('text-base leading-none tracking-tight', isActive ? 'font-bold' : 'font-medium')}>{label}</p>
-                <p className={cn('text-xs mt-1 truncate', isActive ? 'opacity-80 font-medium' : 'text-slate-400')}>{desc}</p>
-              </div>
-            </button>
+              <button
+                onClick={() => onTabChange?.(id)}
+                className={cn(
+                  'w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all group',
+                  isActive
+                    ? activeColor
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                )}
+              >
+                <div className={cn('transition-colors', isActive ? '' : 'text-slate-400 group-hover:text-slate-600')}>
+                  <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
+                </div>
+                <div className="min-w-0">
+                  <p className={cn('text-base leading-none tracking-tight', isActive ? 'font-bold' : 'font-medium')}>{label}</p>
+                  <p className={cn('text-xs mt-1 truncate', isActive ? 'opacity-80 font-medium' : 'text-slate-400')}>{desc}</p>
+                </div>
+              </button>
+            </React.Fragment>
           );
         })}
       </nav>

@@ -5,7 +5,7 @@ import { Home, Zap, CloudRain, Mic, Map, Camera, TrendingUp, Clock } from 'lucid
 import { useI18n } from '@/contexts/i18nContext';
 import { cn } from '@/lib/utils';
 
-export type TabId = 'home' | 'simulator' | 'climate' | 'doctor' | 'map' | 'uploader' | 'mandi' | 'time-machine';
+export type TabId = 'home' | 'simulator' | 'climate' | 'doctor' | 'map' | 'uploader' | 'mandi' | 'time-machine' | 'chitrodrishti' | 'shorrakhok' | 'soil';
 
 interface BottomNavProps {
   activeTab: TabId;

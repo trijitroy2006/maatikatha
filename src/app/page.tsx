@@ -8,6 +8,10 @@ import { PestRadarMap } from '@/components/map/PestRadarMap';
 import FieldUploader from '@/components/FieldUploader';
 import MandiOptimizer from '@/components/MandiOptimizer';
 import { TimeMachine } from '@/components/TimeMachine';
+// Phase II
+import { ChitroDrishtiUI } from '@/components/ChitroDrishti/ChitroDrishtiUI';
+import { ShorraKhokUI }    from '@/components/ShorraKhok/ShorraKhokUI';
+import { SoilSpectroscopyUI } from '@/components/SoilSpectroscopy/SoilSpectroscopyUI';
 import { BottomNav, TabId } from '@/components/Navigation/BottomNav';
 import { SideNav } from '@/components/Navigation/SideNav';
 import AuthModal from '@/components/AuthModal';
@@ -15,7 +19,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import {
   Leaf, Sun, CloudRain, TrendingUp, Map, Zap,
-  Droplets, Thermometer, AlertTriangle, Camera, Clock
+  Droplets, Thermometer, AlertTriangle, Camera, Clock,
+  Microscope, Radio, Beaker,
 } from 'lucide-react';
 
 function StatCard({ icon, label, value, unit, color }: {
@@ -99,16 +104,29 @@ function HomeDashboard({ onTabChange }: { onTabChange: (tab: TabId) => void }) {
         <StatCard icon={<CloudRain className="w-6 h-6 text-sky-500" />} label="Rain Risk" value="45" unit="%" color="" />
       </div>
 
-      {/* Quick Access Grid */}
+      {/* Quick Access Grid — Phase I */}
       <div>
         <h2 className="text-2xl font-bold text-slate-800 mb-6">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <QuickCard icon={Zap} title="Crop Simulator" desc="What-if yield scenarios" colorClass="bg-amber-100 text-amber-600 group-hover:bg-amber-500 group-hover:text-white" onClick={() => onTabChange('simulator')} />
-          <QuickCard icon={TrendingUp} title="Mandi Optimizer" desc="Market price analysis" colorClass="bg-emerald-100 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white" onClick={() => onTabChange('mandi')} />
-          <QuickCard icon={Camera} title="Field Upload" desc="Scan crop photos" colorClass="bg-blue-100 text-blue-600 group-hover:bg-blue-500 group-hover:text-white" onClick={() => onTabChange('uploader')} />
-          <QuickCard icon={CloudRain} title="Climate Card" desc="14-day & 40-yr forecast" colorClass="bg-sky-100 text-sky-600 group-hover:bg-sky-500 group-hover:text-white" onClick={() => onTabChange('climate')} />
-          <QuickCard icon={Map} title="Pest Radar" desc="Live disease spread map" colorClass="bg-rose-100 text-rose-600 group-hover:bg-rose-500 group-hover:text-white" onClick={() => onTabChange('map')} />
-          <QuickCard icon={Clock} title="Time Machine" desc="Historical baselines" colorClass="bg-purple-100 text-purple-600 group-hover:bg-purple-500 group-hover:text-white" onClick={() => onTabChange('time-machine')} />
+          <QuickCard icon={Zap}        title="Crop Simulator"  desc="What-if yield scenarios"     colorClass="bg-amber-100 text-amber-600 group-hover:bg-amber-500 group-hover:text-white"   onClick={() => onTabChange('simulator')} />
+          <QuickCard icon={TrendingUp} title="Mandi Optimizer" desc="Market price analysis"       colorClass="bg-emerald-100 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white" onClick={() => onTabChange('mandi')} />
+          <QuickCard icon={Camera}     title="Field Upload"    desc="Scan crop photos"             colorClass="bg-blue-100 text-blue-600 group-hover:bg-blue-500 group-hover:text-white"     onClick={() => onTabChange('uploader')} />
+          <QuickCard icon={CloudRain}  title="Climate Card"    desc="14-day & 40-yr forecast"     colorClass="bg-sky-100 text-sky-600 group-hover:bg-sky-500 group-hover:text-white"        onClick={() => onTabChange('climate')} />
+          <QuickCard icon={Map}        title="Pest Radar"      desc="Live disease spread map"     colorClass="bg-rose-100 text-rose-600 group-hover:bg-rose-500 group-hover:text-white"     onClick={() => onTabChange('map')} />
+          <QuickCard icon={Clock}      title="Time Machine"    desc="Historical baselines"        colorClass="bg-purple-100 text-purple-600 group-hover:bg-purple-500 group-hover:text-white" onClick={() => onTabChange('time-machine')} />
+        </div>
+      </div>
+
+      {/* Phase II — Zero Hardware Features */}
+      <div>
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="text-2xl font-bold text-slate-800">Phase II — Zero Hardware</h2>
+          <span className="px-3 py-1 bg-gradient-to-r from-violet-500 to-indigo-500 text-white text-xs font-bold rounded-full uppercase tracking-wider">New</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <QuickCard icon={Microscope} title="ChitroDrishti"     desc="AI visual disease triage"   colorClass="bg-violet-100 text-violet-600 group-hover:bg-violet-500 group-hover:text-white"  onClick={() => onTabChange('chitrodrishti')} />
+          <QuickCard icon={Radio}      title="ShorraKhok"        desc="Acoustic pest radar (FFT)"  colorClass="bg-rose-100 text-rose-600 group-hover:bg-rose-500 group-hover:text-white"       onClick={() => onTabChange('shorrakhok')} />
+          <QuickCard icon={Beaker}     title="Soil Spectroscopy" desc="Color-based carbon analysis" colorClass="bg-amber-100 text-amber-600 group-hover:bg-amber-500 group-hover:text-white"    onClick={() => onTabChange('soil')} />
         </div>
       </div>
     </div>
@@ -120,7 +138,7 @@ export default function Page() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'home':      return <HomeDashboard onTabChange={setActiveTab} />;
+      case 'home':          return <HomeDashboard onTabChange={setActiveTab} />;
       case 'simulator':    return <WhatIfSimulator />;
       case 'climate':      return <RituRakhokCard />;
       case 'doctor':       return <VoiceDoctorUI />;
@@ -128,6 +146,10 @@ export default function Page() {
       case 'uploader':     return <FieldUploader />;
       case 'mandi':        return <MandiOptimizer />;
       case 'time-machine': return <TimeMachine />;
+      // Phase II
+      case 'chitrodrishti': return <ChitroDrishtiUI />;
+      case 'shorrakhok':    return <ShorraKhokUI />;
+      case 'soil':          return <SoilSpectroscopyUI />;
     }
   };
 
