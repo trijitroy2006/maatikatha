@@ -14,14 +14,19 @@ import { initDb } from './db';
 import { errorHandler } from './middleware/errorHandler';
 
 // Routes
-import authRouter from './routes/auth';
-import farmRouter from './routes/farm';
-import simulatorRouter from './routes/simulator';
-import climateRouter from './routes/climate';
-import doctorRouter from './routes/doctor';
-import mandiRouter from './routes/mandi';
-import pestRouter from './routes/pest';
-import uploadRouter from './routes/upload';
+import authRouter         from './routes/auth';
+import farmRouter         from './routes/farm';
+import simulatorRouter    from './routes/simulator';
+import climateRouter      from './routes/climate';
+import doctorRouter       from './routes/doctor';
+import mandiRouter        from './routes/mandi';
+import pestRouter         from './routes/pest';
+import uploadRouter       from './routes/upload';
+// Phase II routes
+import chitrodrishtiRouter from './routes/chitrodrishti';
+import shorrakhokRouter    from './routes/shorrakhok';
+import maatisurakshaRouter from './routes/maatisuraksha';
+import compostRouter       from './routes/compost';
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -58,23 +63,29 @@ app.use('/uploads', express.static(path.resolve(UPLOAD_DIR)));
 // ============================================================
 // API Routes
 // ============================================================
-app.use('/api/auth',      authRouter);
-app.use('/api/farm',      farmRouter);
-app.use('/api/simulator', simulatorRouter);
-app.use('/api/climate',   climateRouter);
-app.use('/api/doctor',    doctorRouter);
-app.use('/api/mandi',     mandiRouter);
-app.use('/api/pest',      pestRouter);
-app.use('/api/upload',    uploadRouter);
+app.use('/api/auth',          authRouter);
+app.use('/api/farm',          farmRouter);
+app.use('/api/simulator',     simulatorRouter);
+app.use('/api/climate',       climateRouter);
+app.use('/api/doctor',        doctorRouter);
+app.use('/api/mandi',         mandiRouter);
+app.use('/api/pest',          pestRouter);
+app.use('/api/upload',        uploadRouter);
+// Phase II
+app.use('/api/chitrodrishti', chitrodrishtiRouter);
+app.use('/api/shorrakhok',    shorrakhokRouter);
+app.use('/api/score',         maatisurakshaRouter);
+app.use('/api/compost',       compostRouter);
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
     service: 'MaatiKatha API',
-    version: '2.0.0',
+    version: '3.0.0',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    phase_ii: ['chitrodrishti', 'shorrakhok', 'maatisuraksha', 'compost'],
   });
 });
 
@@ -82,16 +93,22 @@ app.get('/health', (req, res) => {
 app.get('/api', (req, res) => {
   res.json({
     name: 'MaatiKatha Agricultural Intelligence API',
-    version: '2.0.0',
-    endpoints: {
-      auth:      'POST /api/auth/register, POST /api/auth/login, POST /api/auth/refresh, POST /api/auth/logout, GET /api/auth/me',
-      farm:      'GET|POST /api/farm/plots, GET|PUT|DELETE /api/farm/plots/:id, PUT /api/farm/location',
-      simulator: 'POST /api/simulator, GET /api/simulator/history',
+    version: '3.0.0 (Phase II)',
+    phase_i: {
+      auth:      'POST /api/auth/register, POST /api/auth/login',
+      farm:      'GET|POST /api/farm/plots',
+      simulator: 'POST /api/simulator',
       climate:   'GET /api/climate?lat=&lon=',
-      doctor:    'POST /api/doctor, GET /api/doctor/history',
-      mandi:     'GET /api/mandi?crop=&harvestDate=',
-      pest:      'GET /api/pest?lat=&lon=, GET /api/pest/all, POST /api/pest',
-      upload:    'POST /api/upload, GET /api/upload/my',
+      doctor:    'POST /api/doctor',
+      mandi:     'GET /api/mandi?crop=',
+      pest:      'GET /api/pest?lat=&lon=',
+      upload:    'POST /api/upload',
+    },
+    phase_ii: {
+      chitrodrishti: 'POST /api/chitrodrishti/diagnose — AI Visual Crop Disease Triage',
+      shorrakhok:    'POST /api/shorrakhok/scan — Acoustic Pest FFT Radar',
+      maatisuraksha: 'GET /api/score/:farmId — Micro-Insurance Resilience Score',
+      compost:       'POST /api/compost — Biomass Composting Timeline, GET /api/compost/crops',
     },
   });
 });
