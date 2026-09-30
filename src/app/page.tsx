@@ -9,9 +9,9 @@ import FieldUploader from '@/components/FieldUploader';
 import MandiOptimizer from '@/components/MandiOptimizer';
 import { TimeMachine } from '@/components/TimeMachine';
 // Phase II
-import { ChitroDrishtiUI } from '@/components/ChitroDrishti/ChitroDrishtiUI';
-import { ShorraKhokUI }    from '@/components/ShorraKhok/ShorraKhokUI';
-import { SoilSpectroscopyUI } from '@/components/SoilSpectroscopy/SoilSpectroscopyUI';
+import ChitroDrishtiUI   from '@/components/ChitroDrishti/ChitroDrishtiUI';
+import ShorraKhokUI      from '@/components/ShorraKhok/ShorraKhokUI';
+import SoilSpectroscopyUI from '@/components/SoilSpectroscopy/SoilSpectroscopyUI';
 import { BottomNav, TabId } from '@/components/Navigation/BottomNav';
 import { SideNav } from '@/components/Navigation/SideNav';
 import AuthModal from '@/components/AuthModal';
