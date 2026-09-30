@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Home, Zap, CloudRain, Mic, Map, Camera, TrendingUp } from 'lucide-react';
+import { Home, Zap, CloudRain, Mic, Map, Camera, TrendingUp, Clock } from 'lucide-react';
 import { useI18n } from '@/contexts/i18nContext';
 import { cn } from '@/lib/utils';
 
-export type TabId = 'home' | 'simulator' | 'climate' | 'doctor' | 'map' | 'uploader' | 'mandi';
+export type TabId = 'home' | 'simulator' | 'climate' | 'doctor' | 'map' | 'uploader' | 'mandi' | 'time-machine';
 
 interface BottomNavProps {
   activeTab: TabId;
@@ -13,11 +13,12 @@ interface BottomNavProps {
 }
 
 const TABS: { id: TabId; icon: any; label: string; activeColor: string }[] = [
-  { id: 'home',      icon: Home,       label: 'Home',      activeColor: 'text-emerald-600' },
-  { id: 'simulator', icon: Zap,        label: 'Sim',       activeColor: 'text-amber-500' },
-  { id: 'climate',   icon: CloudRain,  label: 'Climate',   activeColor: 'text-sky-500' },
-  { id: 'doctor',    icon: Mic,        label: 'Doctor',    activeColor: 'text-indigo-500' },
-  { id: 'map',       icon: Map,        label: 'Radar',     activeColor: 'text-rose-500' },
+  { id: 'home',         icon: Home,       label: 'Home',    activeColor: 'text-emerald-600' },
+  { id: 'simulator',    icon: Zap,        label: 'Sim',     activeColor: 'text-amber-500'   },
+  { id: 'climate',      icon: CloudRain,  label: 'Climate', activeColor: 'text-sky-500'     },
+  { id: 'doctor',       icon: Mic,        label: 'Doctor',  activeColor: 'text-indigo-500'  },
+  { id: 'map',          icon: Map,        label: 'Radar',   activeColor: 'text-rose-500'    },
+  { id: 'time-machine', icon: Clock,      label: 'History', activeColor: 'text-purple-500'  },
 ];
 
 export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {

@@ -7,16 +7,16 @@ import { VoiceDoctorUI } from '@/components/VoiceDoctor/VoiceDoctorUI';
 import { PestRadarMap } from '@/components/map/PestRadarMap';
 import FieldUploader from '@/components/FieldUploader';
 import MandiOptimizer from '@/components/MandiOptimizer';
+import { TimeMachine } from '@/components/TimeMachine';
 import { BottomNav, TabId } from '@/components/Navigation/BottomNav';
 import { SideNav } from '@/components/Navigation/SideNav';
 import AuthModal from '@/components/AuthModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 import {
-  Leaf, Sun, CloudRain, TrendingUp, Mic, Map, Zap,
+  Leaf, Sun, CloudRain, TrendingUp, Map, Zap,
   Droplets, Thermometer, AlertTriangle, Camera, Clock
 } from 'lucide-react';
-import Link from 'next/link';
 
 function StatCard({ icon, label, value, unit, color }: {
   icon: React.ReactNode; label: string; value: string; unit: string; color: string;
@@ -108,13 +108,7 @@ function HomeDashboard({ onTabChange }: { onTabChange: (tab: TabId) => void }) {
           <QuickCard icon={Camera} title="Field Upload" desc="Scan crop photos" colorClass="bg-blue-100 text-blue-600 group-hover:bg-blue-500 group-hover:text-white" onClick={() => onTabChange('uploader')} />
           <QuickCard icon={CloudRain} title="Climate Card" desc="14-day & 40-yr forecast" colorClass="bg-sky-100 text-sky-600 group-hover:bg-sky-500 group-hover:text-white" onClick={() => onTabChange('climate')} />
           <QuickCard icon={Map} title="Pest Radar" desc="Live disease spread map" colorClass="bg-rose-100 text-rose-600 group-hover:bg-rose-500 group-hover:text-white" onClick={() => onTabChange('map')} />
-          <Link href="/time-machine" className="group bg-white border border-slate-100 rounded-2xl p-6 text-left transition-all hover:shadow-lg hover:-translate-y-1 block">
-            <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-4 transition-colors bg-purple-100 text-purple-600 group-hover:bg-purple-500 group-hover:text-white">
-              <Clock className="w-7 h-7" />
-            </div>
-            <p className="text-xl font-bold text-slate-800 leading-tight mb-2">Time Machine</p>
-            <p className="text-sm font-medium text-slate-500">Historical Baselines</p>
-          </Link>
+          <QuickCard icon={Clock} title="Time Machine" desc="Historical baselines" colorClass="bg-purple-100 text-purple-600 group-hover:bg-purple-500 group-hover:text-white" onClick={() => onTabChange('time-machine')} />
         </div>
       </div>
     </div>
@@ -127,12 +121,13 @@ export default function Page() {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':      return <HomeDashboard onTabChange={setActiveTab} />;
-      case 'simulator': return <WhatIfSimulator />;
-      case 'climate':   return <RituRakhokCard />;
-      case 'doctor':    return <VoiceDoctorUI />;
-      case 'map':       return <PestRadarMap />;
-      case 'uploader':  return <FieldUploader />;
-      case 'mandi':     return <MandiOptimizer />;
+      case 'simulator':    return <WhatIfSimulator />;
+      case 'climate':      return <RituRakhokCard />;
+      case 'doctor':       return <VoiceDoctorUI />;
+      case 'map':          return <PestRadarMap />;
+      case 'uploader':     return <FieldUploader />;
+      case 'mandi':        return <MandiOptimizer />;
+      case 'time-machine': return <TimeMachine />;
     }
   };
 

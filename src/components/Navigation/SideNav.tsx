@@ -5,27 +5,21 @@ import { Home, Zap, CloudRain, Mic, Map as MapIcon, Leaf, Camera, TrendingUp, Cl
 import { useI18n } from '@/contexts/i18nContext';
 import { cn } from '@/lib/utils';
 import type { TabId } from './BottomNav';
-import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 
-const TABS: {
-  id: TabId | 'time-machine';
-  icon: any;
-  label: string;
-  activeColor: string;
-  desc: string;
-}[] = [
-  { id: 'home',      icon: Home,       label: 'Dashboard',      activeColor: 'text-emerald-600 bg-emerald-50', desc: 'Farm Overview' },
-  { id: 'simulator', icon: Zap,        label: 'Simulator',      activeColor: 'text-amber-600 bg-amber-50',     desc: 'What-If Crop Yield' },
-  { id: 'climate',   icon: CloudRain,  label: 'RituRakhok',     activeColor: 'text-sky-600 bg-sky-50',         desc: 'Climate Forecast' },
-  { id: 'doctor',    icon: Mic,        label: 'Field Doctor',   activeColor: 'text-indigo-600 bg-indigo-50',   desc: 'Voice AI Diagnosis' },
-  { id: 'map',       icon: MapIcon,    label: 'Pest Radar',     activeColor: 'text-rose-600 bg-rose-50',       desc: 'Spread Map' },
-  { id: 'uploader',  icon: Camera,     label: 'Photo Upload',   activeColor: 'text-blue-600 bg-blue-50',       desc: 'Camera Input' },
-  { id: 'mandi',     icon: TrendingUp, label: 'Mandi Optimizer',activeColor: 'text-emerald-600 bg-emerald-50', desc: 'Market Prices' },
+const TABS: { id: TabId; icon: any; label: string; activeColor: string; desc: string }[] = [
+  { id: 'home',         icon: Home,       label: 'Dashboard',       activeColor: 'text-emerald-600 bg-emerald-50', desc: 'Farm Overview'        },
+  { id: 'simulator',    icon: Zap,        label: 'Simulator',       activeColor: 'text-amber-600 bg-amber-50',     desc: 'What-If Crop Yield'   },
+  { id: 'climate',      icon: CloudRain,  label: 'RituRakhok',      activeColor: 'text-sky-600 bg-sky-50',         desc: 'Climate Forecast'     },
+  { id: 'doctor',       icon: Mic,        label: 'Field Doctor',    activeColor: 'text-indigo-600 bg-indigo-50',   desc: 'Voice AI Diagnosis'   },
+  { id: 'map',          icon: MapIcon,    label: 'Pest Radar',      activeColor: 'text-rose-600 bg-rose-50',       desc: 'Spread Map'           },
+  { id: 'uploader',     icon: Camera,     label: 'Photo Upload',    activeColor: 'text-blue-600 bg-blue-50',       desc: 'Camera Input'         },
+  { id: 'mandi',        icon: TrendingUp, label: 'Mandi Optimizer', activeColor: 'text-green-600 bg-green-50',     desc: 'Market Prices'        },
+  { id: 'time-machine', icon: Clock,      label: 'Time Machine',    activeColor: 'text-purple-600 bg-purple-50',   desc: 'Historical Baseline'  },
 ];
 
 interface SideNavProps {
-  activeTab?: TabId | 'time-machine';
+  activeTab?: TabId;
   onTabChange?: (tab: TabId) => void;
 }
 
@@ -47,18 +41,18 @@ export function SideNav({ activeTab = 'home', onTabChange }: SideNavProps) {
       </div>
 
       {/* Nav Section Label */}
-      <div className="px-8 pt-4 pb-2">
+      <div className="px-8 pt-2 pb-2">
         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Navigation</p>
       </div>
 
       {/* Nav Items */}
-      <nav className="flex-1 px-4 space-y-1.5 mt-2">
+      <nav className="flex-1 px-4 space-y-1 mt-1">
         {TABS.map(({ id, icon: Icon, label, activeColor, desc }) => {
           const isActive = activeTab === id;
           return (
             <button
               key={id}
-              onClick={() => onTabChange && id !== 'time-machine' ? onTabChange(id as TabId) : undefined}
+              onClick={() => onTabChange?.(id)}
               className={cn(
                 'w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all group',
                 isActive
@@ -66,33 +60,20 @@ export function SideNav({ activeTab = 'home', onTabChange }: SideNavProps) {
                   : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               )}
             >
-              <div className={cn("transition-colors", isActive ? "" : "text-slate-400 group-hover:text-slate-600")}>
+              <div className={cn('transition-colors', isActive ? '' : 'text-slate-400 group-hover:text-slate-600')}>
                 <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
               </div>
               <div className="min-w-0">
-                <p className={cn("text-base leading-none tracking-tight", isActive ? "font-bold" : "font-medium")}>{label}</p>
-                <p className={cn("text-xs mt-1 truncate", isActive ? "opacity-80 font-medium" : "text-slate-400")}>{desc}</p>
+                <p className={cn('text-base leading-none tracking-tight', isActive ? 'font-bold' : 'font-medium')}>{label}</p>
+                <p className={cn('text-xs mt-1 truncate', isActive ? 'opacity-80 font-medium' : 'text-slate-400')}>{desc}</p>
               </div>
             </button>
           );
         })}
-        
-        <Link href="/time-machine" className={cn(
-            'w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all group mt-6',
-            activeTab === 'time-machine' ? 'text-purple-600 bg-purple-50' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-          )}>
-            <div className={cn("transition-colors", activeTab === 'time-machine' ? "" : "text-slate-400 group-hover:text-slate-600")}>
-              <Clock className="w-6 h-6" strokeWidth={activeTab === 'time-machine' ? 2.5 : 2} />
-            </div>
-            <div className="min-w-0">
-              <p className={cn("text-base leading-none tracking-tight", activeTab === 'time-machine' ? "font-bold" : "font-medium")}>Time Machine</p>
-              <p className={cn("text-xs mt-1 truncate", activeTab === 'time-machine' ? "opacity-80 font-medium" : "text-slate-400")}>Historical Baseline</p>
-            </div>
-        </Link>
       </nav>
 
       {/* User Profile & Logout */}
-      <div className="p-6 border-t border-slate-100 mt-6">
+      <div className="p-6 border-t border-slate-100 mt-4">
         <div className="bg-slate-50 rounded-2xl p-4 flex items-center justify-between border border-slate-100">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0 text-emerald-600 font-bold text-lg">
@@ -101,11 +82,11 @@ export function SideNav({ activeTab = 'home', onTabChange }: SideNavProps) {
             <div className="min-w-0">
               <p className="text-sm font-bold text-slate-800 truncate">{farmerName || 'Farmer'}</p>
               <p className="text-xs text-slate-500 font-medium flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Online
+                <span className="w-2 h-2 rounded-full bg-emerald-500" /> Online
               </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={logout}
             className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
             title="Log out"
