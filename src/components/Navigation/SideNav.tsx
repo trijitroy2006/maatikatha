@@ -52,38 +52,27 @@ export function SideNav({ activeTab = 'home', onTabChange }: SideNavProps) {
 
       {/* Nav Items */}
       <nav className="flex-1 px-4 space-y-1 mt-1">
-        {TABS.map(({ id, icon: Icon, label, activeColor, desc, group }) => {
+        {TABS.map(({ id, icon: Icon, label, activeColor, desc }) => {
           const isActive = activeTab === id;
           return (
-            <React.Fragment key={id}>
-              {/* Phase II section label */}
-              {group === 'phase2' && id === 'chitrodrishti' && (
-                <div className="pt-3 pb-1 px-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-px bg-slate-100" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Phase II</span>
-                    <div className="flex-1 h-px bg-slate-100" />
-                  </div>
-                </div>
+            <button
+              key={id}
+              onClick={() => onTabChange?.(id)}
+              className={cn(
+                'w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all group',
+                isActive
+                  ? activeColor
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               )}
-              <button
-                onClick={() => onTabChange?.(id)}
-                className={cn(
-                  'w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all group',
-                  isActive
-                    ? activeColor
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                )}
-              >
-                <div className={cn('transition-colors', isActive ? '' : 'text-slate-400 group-hover:text-slate-600')}>
-                  <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
-                </div>
-                <div className="min-w-0">
-                  <p className={cn('text-base leading-none tracking-tight', isActive ? 'font-bold' : 'font-medium')}>{label}</p>
-                  <p className={cn('text-xs mt-1 truncate', isActive ? 'opacity-80 font-medium' : 'text-slate-400')}>{desc}</p>
-                </div>
-              </button>
-            </React.Fragment>
+            >
+              <div className={cn('transition-colors', isActive ? '' : 'text-slate-400 group-hover:text-slate-600')}>
+                <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
+              </div>
+              <div className="min-w-0">
+                <p className={cn('text-base leading-none tracking-tight', isActive ? 'font-bold' : 'font-medium')}>{label}</p>
+                <p className={cn('text-xs mt-1 truncate', isActive ? 'opacity-80 font-medium' : 'text-slate-400')}>{desc}</p>
+              </div>
+            </button>
           );
         })}
       </nav>
